@@ -1,8 +1,12 @@
+'use client';
+
 import React from 'react';
+import { cn } from '@/lib/utils/cn';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
 interface CardHeaderProps {
@@ -20,10 +24,19 @@ interface CardFooterProps {
   className?: string;
 }
 
-export function Card({ children, className = '' }: CardProps) {
+export function Card({
+  children,
+  className = '',
+  onClick,
+}: CardProps) {
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}
+      className={cn(
+        'bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-lg transition-colors',
+        onClick && 'cursor-pointer hover:border-[var(--accent-primary)]',
+        className
+      )}
+      onClick={onClick}
     >
       {children}
     </div>
@@ -32,21 +45,30 @@ export function Card({ children, className = '' }: CardProps) {
 
 export function CardHeader({ children, className = '' }: CardHeaderProps) {
   return (
-    <div className={`px-6 py-4 border-b border-gray-200 ${className}`}>
+    <div
+      className={cn(
+        'px-6 py-4 border-b border-[var(--border-primary)]',
+        className
+      )}
+    >
       {children}
     </div>
   );
 }
 
 export function CardBody({ children, className = '' }: CardBodyProps) {
-  return <div className={`px-6 py-4 ${className}`}>{children}</div>;
+  return <div className={cn('px-6 py-4', className)}>{children}</div>;
 }
 
 export function CardFooter({ children, className = '' }: CardFooterProps) {
   return (
-    <div className={`px-6 py-4 border-t border-gray-200 ${className}`}>
+    <div
+      className={cn(
+        'px-6 py-4 border-t border-[var(--border-primary)]',
+        className
+      )}
+    >
       {children}
     </div>
   );
 }
-

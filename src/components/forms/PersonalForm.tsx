@@ -26,6 +26,7 @@ export function PersonalForm({
     handleSubmit,
     formState: { errors },
     setValue,
+    watch,
   } = useForm<PersonalContentFormData>({
     resolver: zodResolver(personalContentSchema),
     defaultValues: initialData || {
@@ -79,6 +80,7 @@ export function PersonalForm({
         required
         {...register('name')}
         error={errors.name?.message}
+        success={!errors.name && !!watch('name')}
       />
 
       <Input
@@ -87,6 +89,7 @@ export function PersonalForm({
         placeholder="Hi, I'm"
         {...register('titlePrefix')}
         error={errors.titlePrefix?.message}
+        success={!errors.titlePrefix && !!watch('titlePrefix')}
       />
 
       <Textarea

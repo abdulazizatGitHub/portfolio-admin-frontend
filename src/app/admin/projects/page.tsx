@@ -1,203 +1,219 @@
 'use client';
 
-import { useState } from 'react';
-import { useProjects } from '@/lib/hooks';
-import { ProjectsForm } from '@/components/forms/ProjectsForm';
-import { Card, CardBody } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/Table';
-import type { Project } from '@/types';
+import { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import { Project } from '@/types';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { ProjectsTable } from '@/components/sections/Projects/ProjectsTable';
+import { ProjectDetailModal } from '@/components/sections/Projects/ProjectDetailModal';
+import { ProjectFormModal } from '@/components/sections/Projects/ProjectFormModal';
+import { useToast } from '@/lib/hooks/useToast';
+import { mockProjects } from '@/lib/data/mockData';
 
 export default function ProjectsPage() {
-  const { data: initialData, isLoading, error } = useProjects();
-  const [projects, setProjects] = useState<Project[]>(initialData || []);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const { success, error: showError } = useToast();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAdd = () => {
-    setEditingProject(null);
-    setIsModalOpen(true);
+  // Modal states
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
+  // Selected items
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
+
+  // Form loading
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Load projects on mount
+  useEffect(() => {
+    // Simulate API call
+    setTimeout(() => {
+      setProjects(mockProjects);
+      setIsLoading(false);
+    }, 500);
+  }, []);
+
+  // Handle view project
+  const handleView = (project: Project) => {
+    setSelectedProject(project);
+    setViewModalOpen(true);
   };
 
+  // Handle create new project
+  const handleCreate = () => {
+    setEditingProject(null);
+    setFormModalOpen(true);
+  };
+
+  // Handle edit project
   const handleEdit = (project: Project) => {
     setEditingProject(project);
-    setIsModalOpen(true);
+    setFormModalOpen(true);
+    setViewModalOpen(false); // Close detail modal if open
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this project?')) {
-      setProjects(projects.filter((p) => p.id !== id));
+  // Handle delete click
+  const handleDeleteClick = (project: Project) => {
+    setDeleteTarget(project);
+    setDeleteModalOpen(true);
+    setViewModalOpen(false); // Close detail modal if open
+  };
+
+  // Handle delete confirm
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Remove from state
+      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+
+      success('Project deleted successfully');
+      setDeleteModalOpen(false);
+      setDeleteTarget(null);
+    } catch (err) {
+      showError('Failed to delete project');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleTogglePublish = (id: number) => {
-    setProjects(
-      projects.map((p) =>
-        p.id === id ? { ...p, isPublished: !p.isPublished } : p
-      )
-    );
-  };
-
-  const handleSubmit = async (formData: any) => {
+  // Handle save (create or update)
+  const handleSave = async (projectData: Partial<Project>) => {
     setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    if (editingProject?.id) {
-      setProjects(
-        projects.map((p) =>
-          p.id === editingProject.id ? { ...p, ...formData } : p
-        )
-      );
-    } else {
-      const newProject: Project = {
-        id: Date.now(),
-        ...formData,
-        orderIndex: projects.length,
-      };
-      setProjects([...projects, newProject]);
+      if (editingProject) {
+        // Update existing project
+        const updatedProject: Project = {
+          ...editingProject,
+          ...projectData,
+          updatedAt: new Date().toISOString(),
+        } as Project;
+
+        setProjects((prev) =>
+          prev.map((p) => (p.id === editingProject.id ? updatedProject : p))
+        );
+
+        success('Project updated successfully');
+      } else {
+        // Create new project
+        const newProject: Project = {
+          ...projectData,
+          id: Math.max(...projects.map((p) => p.id || 0), 0) + 1,
+          orderIndex: projects.length,
+          isPublished: projectData.status === 'live',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as Project;
+
+        setProjects((prev) => [newProject, ...prev]);
+
+        success('Project created successfully');
+      }
+
+      setFormModalOpen(false);
+      setEditingProject(null);
+    } catch (err) {
+      showError('Failed to save project');
+    } finally {
+      setIsSaving(false);
     }
+  };
 
-    setIsSaving(false);
-    setIsModalOpen(false);
-    setEditingProject(null);
+  // Handle selection change (for bulk operations - future feature)
+  const handleSelectionChange = (selectedIds: string[]) => {
+    console.log('Selected projects:', selectedIds);
+    // Can implement bulk operations here in the future
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-red-600">Error loading projects</div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+          <p className="text-text-secondary">Loading projects...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
-          <p className="mt-2 text-gray-600">
-            Manage your portfolio projects
-          </p>
-        </div>
-        <Button onClick={handleAdd}>Add Project</Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Projects Management"
+        description="Manage your portfolio projects and showcase your work"
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin' },
+          { label: 'Projects' },
+        ]}
+        actions={
+          <button onClick={handleCreate} className="btn-primary">
+            <Plus className="w-4 h-4 mr-2" style={{ display: 'inline-block' }} />
+            New Project
+          </button>
+        }
+      />
 
-      <Card>
-        <CardBody>
-          {projects.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No projects yet.</p>
-              <Button onClick={handleAdd} className="mt-4">
-                Add Your First Project
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Technologies</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {projects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{project.title}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-2">{project.description}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {project.tech.slice(0, 3).map((tech, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                        {project.tech.length > 3 && (
-                          <span className="px-2 py-1 text-xs text-gray-500">
-                            +{project.tech.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => project.id && handleTogglePublish(project.id)}
-                        className={`
-                          px-3 py-1 rounded-full text-xs font-medium
-                          ${
-                            project.isPublished
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }
-                        `}
-                      >
-                        {project.isPublished ? 'Published' : 'Draft'}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleEdit(project)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          onClick={() => project.id && handleDelete(project.id)}
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardBody>
-      </Card>
+      {/* Projects Table */}
+      <ProjectsTable
+        projects={projects}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+        onSelectionChange={handleSelectionChange}
+      />
 
-      <Modal
-        isOpen={isModalOpen}
+      {/* Project Detail Modal */}
+      <ProjectDetailModal
+        project={selectedProject}
+        isOpen={viewModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
+          setViewModalOpen(false);
+          setSelectedProject(null);
+        }}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+      />
+
+      {/* Project Form Modal (Create/Edit) */}
+      <ProjectFormModal
+        project={editingProject}
+        isOpen={formModalOpen}
+        onClose={() => {
+          setFormModalOpen(false);
           setEditingProject(null);
         }}
-        title={editingProject ? 'Edit Project' : 'Add Project'}
-        size="lg"
-      >
-        <ProjectsForm
-          initialData={editingProject || undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => {
-            setIsModalOpen(false);
-            setEditingProject(null);
-          }}
-          isLoading={isSaving}
-        />
-      </Modal>
+        onSave={handleSave}
+        isLoading={isSaving}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setDeleteTarget(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Project"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
-

@@ -1,291 +1,160 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useContactInfo, useSocialLinks } from '@/lib/hooks';
-import { ContactInfoForm, SocialLinkForm } from '@/components/forms/ContactForm';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
+import { ContactInfoList } from '@/components/sections/Contact/ContactInfoList';
+import { SocialLinksList } from '@/components/sections/Contact/SocialLinksList';
+import { Card } from '@/components/ui/Card';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { useToast } from '@/lib/hooks/useToast';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import type { ContactInfoItem, SocialLink } from '@/types';
 
 export default function ContactPage() {
+  const router = useRouter();
   const { data: initialContactInfo, isLoading: contactLoading, error: contactError } = useContactInfo();
   const { data: initialSocialLinks, isLoading: socialLoading, error: socialError } = useSocialLinks();
+  const { success, error: showError } = useToast();
   
-  const [contactInfo, setContactInfo] = useState<ContactInfoItem[]>(initialContactInfo || []);
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(initialSocialLinks || []);
-  
-  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<ContactInfoItem | null>(null);
-  const [editingSocial, setEditingSocial] = useState<SocialLink | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [contactInfo, setContactInfo] = useState<ContactInfoItem[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'contact' | 'social'; id: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleAddContact = () => {
-    setEditingContact(null);
-    setIsContactModalOpen(true);
-  };
+  useEffect(() => {
+    if (initialContactInfo) {
+      setContactInfo(initialContactInfo);
+    }
+    if (initialSocialLinks) {
+      setSocialLinks(initialSocialLinks);
+    }
+  }, [initialContactInfo, initialSocialLinks]);
 
   const handleEditContact = (item: ContactInfoItem) => {
-    setEditingContact(item);
-    setIsContactModalOpen(true);
+    router.push(`/admin/contact/info/edit/${item.id}`);
   };
 
   const handleDeleteContact = (id: number) => {
-    if (confirm('Are you sure you want to delete this contact info?')) {
-      setContactInfo(contactInfo.filter((c) => c.id !== id));
-    }
-  };
-
-  const handleAddSocial = () => {
-    setEditingSocial(null);
-    setIsSocialModalOpen(true);
+    setItemToDelete({ type: 'contact', id });
+    setDeleteModalOpen(true);
   };
 
   const handleEditSocial = (link: SocialLink) => {
-    setEditingSocial(link);
-    setIsSocialModalOpen(true);
+    router.push(`/admin/contact/social/edit/${link.id}`);
   };
 
   const handleDeleteSocial = (id: number) => {
-    if (confirm('Are you sure you want to delete this social link?')) {
-      setSocialLinks(socialLinks.filter((s) => s.id !== id));
-    }
+    setItemToDelete({ type: 'social', id });
+    setDeleteModalOpen(true);
   };
 
-  const handleContactSubmit = async (formData: any) => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (editingContact?.id) {
-      setContactInfo(
-        contactInfo.map((c) =>
-          c.id === editingContact.id ? { ...c, ...formData } : c
-        )
-      );
-    } else {
-      const newContact: ContactInfoItem = {
-        id: Date.now(),
-        ...formData,
-        orderIndex: contactInfo.length,
-      };
-      setContactInfo([...contactInfo, newContact]);
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      if (itemToDelete.type === 'contact') {
+        setContactInfo(contactInfo.filter((c) => c.id !== itemToDelete.id));
+        success('Contact info deleted successfully');
+      } else {
+        setSocialLinks(socialLinks.filter((s) => s.id !== itemToDelete.id));
+        success('Social link deleted successfully');
+      }
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
+    } catch (err) {
+      showError('Failed to delete item');
+    } finally {
+      setIsDeleting(false);
     }
-
-    setIsSaving(false);
-    setIsContactModalOpen(false);
-    setEditingContact(null);
-  };
-
-  const handleSocialSubmit = async (formData: any) => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (editingSocial?.id) {
-      setSocialLinks(
-        socialLinks.map((s) =>
-          s.id === editingSocial.id ? { ...s, ...formData } : s
-        )
-      );
-    } else {
-      const newSocial: SocialLink = {
-        id: Date.now(),
-        ...formData,
-        orderIndex: socialLinks.length,
-      };
-      setSocialLinks([...socialLinks, newSocial]);
-    }
-
-    setIsSaving(false);
-    setIsSocialModalOpen(false);
-    setEditingSocial(null);
   };
 
   const isLoading = contactLoading || socialLoading;
   const error = contactError || socialError;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-red-600">Error loading contact information</div>
+        <Card>
+          <div className="p-6">
+            <div className="text-[var(--danger)] mb-4">Error loading contact information</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-sm text-[var(--accent-primary)] hover:text-[var(--accent-hover)] cursor-pointer"
+            >
+              Try again
+            </button>
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Contact</h1>
-        <p className="mt-2 text-gray-600">
-          Manage your contact information and social links
-        </p>
+    <>
+      <PageHeader
+        title="Contact Management"
+        description="Manage your contact information and social media links"
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin' },
+          { label: 'Contact' },
+        ]}
+      />
+
+      <div className="space-y-6">
+        <Card>
+          <div className="p-6">
+            {contactLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : (
+              <ContactInfoList
+                data={contactInfo}
+                onEdit={handleEditContact}
+                onDelete={handleDeleteContact}
+                isLoading={contactLoading}
+              />
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <div className="p-6">
+            {socialLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : (
+              <SocialLinksList
+                data={socialLinks}
+                onEdit={handleEditSocial}
+                onDelete={handleDeleteSocial}
+                isLoading={socialLoading}
+              />
+            )}
+          </div>
+        </Card>
       </div>
 
-      {/* Contact Info */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Contact Information</h2>
-            <Button onClick={handleAddContact} size="sm">
-              Add Contact Info
-            </Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          {contactInfo.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No contact information yet.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {contactInfo.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">{item.label}</p>
-                    <p className="text-lg text-gray-900">{item.value}</p>
-                    {item.href && (
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        {item.href}
-                      </a>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEditContact(item)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => item.id && handleDeleteContact(item.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      {/* Social Links */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Social Links</h2>
-            <Button onClick={handleAddSocial} size="sm">
-              Add Social Link
-            </Button>
-          </div>
-        </CardHeader>
-        <CardBody>
-          {socialLinks.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No social links yet.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {socialLinks.map((link) => (
-                <div
-                  key={link.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-                >
-                  <div>
-                    <p className="text-lg font-semibold text-gray-900">{link.platform}</p>
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      {link.url}
-                    </a>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handleEditSocial(link)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => link.id && handleDeleteSocial(link.id)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      {/* Contact Info Modal */}
-      <Modal
-        isOpen={isContactModalOpen}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
         onClose={() => {
-          setIsContactModalOpen(false);
-          setEditingContact(null);
+          setDeleteModalOpen(false);
+          setItemToDelete(null);
         }}
-        title={editingContact ? 'Edit Contact Info' : 'Add Contact Info'}
-        size="md"
-      >
-        <ContactInfoForm
-          initialData={editingContact || undefined}
-          onSubmit={handleContactSubmit}
-          onCancel={() => {
-            setIsContactModalOpen(false);
-            setEditingContact(null);
-          }}
-          isLoading={isSaving}
-        />
-      </Modal>
-
-      {/* Social Link Modal */}
-      <Modal
-        isOpen={isSocialModalOpen}
-        onClose={() => {
-          setIsSocialModalOpen(false);
-          setEditingSocial(null);
-        }}
-        title={editingSocial ? 'Edit Social Link' : 'Add Social Link'}
-        size="md"
-      >
-        <SocialLinkForm
-          initialData={editingSocial || undefined}
-          onSubmit={handleSocialSubmit}
-          onCancel={() => {
-            setIsSocialModalOpen(false);
-            setEditingSocial(null);
-          }}
-          isLoading={isSaving}
-        />
-      </Modal>
-    </div>
+        onConfirm={handleDeleteConfirm}
+        title={itemToDelete?.type === 'contact' ? 'Delete Contact Info' : 'Delete Social Link'}
+        message={`Are you sure you want to delete this ${itemToDelete?.type === 'contact' ? 'contact info' : 'social link'}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+    </>
   );
 }
-

@@ -1,258 +1,185 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useEducation } from '@/lib/hooks';
-import { EducationForm } from '@/components/forms/EducationForm';
-import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { DataTable } from '@/components/ui/Table/DataTable';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useToast } from '@/lib/hooks/useToast';
+import { Plus } from 'lucide-react';
 import type { EducationEntry } from '@/types';
+import type { ColumnDef } from '@tanstack/react-table';
 
-interface SortableEducationItemProps {
-  entry: EducationEntry;
-  onEdit: () => void;
-  onDelete: () => void;
-}
+export default function EducationPage() {
+  const router = useRouter();
+  const { data: initialData, isLoading, error } = useEducation();
+  const { success, error: showError } = useToast();
+  const [education, setEducation] = useState<EducationEntry[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-function SortableEducationItem({
-  entry,
-  onEdit,
-  onDelete,
-}: SortableEducationItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `education-${entry.id}` });
+  useEffect(() => {
+    if (initialData) {
+      setEducation(initialData);
+    }
+  }, [initialData]);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+  const handleEdit = (entry: EducationEntry) => {
+    router.push(`/admin/education/edit/${entry.id}`);
   };
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-start gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-    >
-      <button
-        {...attributes}
-        {...listeners}
-        className="p-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing mt-1"
-        aria-label="Drag to reorder"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-        </svg>
-      </button>
-      <div className="flex-1">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500">{entry.period}</p>
-            <h3 className="text-lg font-semibold text-gray-900 mt-1">{entry.title}</h3>
-            <p className="text-gray-600 mt-2">{entry.description}</p>
-          </div>
-          <div className="flex gap-2 ml-4">
+  const handleDeleteClick = (entry: EducationEntry) => {
+    setItemToDelete(entry.id!);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setEducation(education.filter((e) => e.id !== itemToDelete));
+      success('Education entry deleted successfully');
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
+    } catch (err) {
+      showError('Failed to delete education entry');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const columns: ColumnDef<EducationEntry>[] = useMemo(
+    () => [
+      {
+        id: 'period',
+        accessorKey: 'period',
+        header: 'Period',
+        cell: ({ row }) => (
+          <span className="font-medium text-[var(--text-primary)]">
+            {row.original.period}
+          </span>
+        ),
+      },
+      {
+        id: 'title',
+        accessorKey: 'title',
+        header: 'Title',
+        cell: ({ row }) => (
+          <span className="text-[var(--text-primary)]">
+            {row.original.title}
+          </span>
+        ),
+      },
+      {
+        id: 'description',
+        accessorKey: 'description',
+        header: 'Description',
+        cell: ({ row }) => (
+          <p className="text-[var(--text-secondary)] line-clamp-2 max-w-md">
+            {row.original.description}
+          </p>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
             <Button
-              variant="secondary"
+              variant="ghost"
               size="sm"
-              onClick={onEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row.original);
+              }}
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             >
               Edit
             </Button>
             <Button
-              variant="danger"
+              variant="ghost"
               size="sm"
-              onClick={onDelete}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(row.original);
+              }}
+              className="text-[var(--error-500)] hover:text-[var(--error-600)]"
             >
               Delete
             </Button>
           </div>
-        </div>
-      </div>
-    </div>
+        ),
+      },
+    ],
+    [handleEdit, handleDeleteClick]
   );
-}
-
-export default function EducationPage() {
-  const { data: initialData, isLoading, error } = useEducation();
-  const [education, setEducation] = useState<EducationEntry[]>(initialData || []);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<EducationEntry | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const activeIndex = education.findIndex(
-        (e) => `education-${e.id}` === active.id
-      );
-      const overIndex = education.findIndex(
-        (e) => `education-${e.id}` === over.id
-      );
-
-      if (activeIndex !== -1 && overIndex !== -1) {
-        const newEducation = arrayMove(education, activeIndex, overIndex).map(
-          (entry, index) => ({ ...entry, orderIndex: index })
-        );
-        setEducation(newEducation);
-      }
-    }
-  };
-
-  const handleAdd = () => {
-    setEditingEntry(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (entry: EducationEntry) => {
-    setEditingEntry(entry);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this education entry?')) {
-      setEducation(education.filter((e) => e.id !== id));
-    }
-  };
-
-  const handleSubmit = async (formData: any) => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (editingEntry?.id) {
-      setEducation(
-        education.map((e) =>
-          e.id === editingEntry.id ? { ...e, ...formData } : e
-        )
-      );
-    } else {
-      const newEntry: EducationEntry = {
-        id: Date.now(),
-        ...formData,
-        orderIndex: education.length,
-      };
-      setEducation([...education, newEntry]);
-    }
-
-    setIsSaving(false);
-    setIsModalOpen(false);
-    setEditingEntry(null);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-red-600">Error loading education entries</div>
+        <Card>
+          <div className="p-6">
+            <div className="text-red-600 dark:text-red-400 mb-4">
+              Error loading education entries
+            </div>
+            <Button onClick={() => window.location.reload()} variant="primary">
+              Try again
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Education</h1>
-          <p className="mt-2 text-gray-600">
-            Manage your education entries
-          </p>
-        </div>
-        <Button onClick={handleAdd}>Add Education Entry</Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Education Management"
+        description="Manage your educational background and qualifications"
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin' },
+          { label: 'Education' },
+        ]}
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => router.push('/admin/education/add')}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Education
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardBody>
-          {education.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No education entries yet.</p>
-              <Button onClick={handleAdd} className="mt-4">
-                Add Your First Entry
-              </Button>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={education.map((e) => `education-${e.id}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-4">
-                  {education.map((entry) => (
-                    <SortableEducationItem
-                      key={entry.id}
-                      entry={entry}
-                      onEdit={() => handleEdit(entry)}
-                      onDelete={() => entry.id && handleDelete(entry.id)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </CardBody>
-      </Card>
+      <DataTable
+        columns={columns}
+        data={education}
+        isLoading={isLoading}
+        searchable
+        searchPlaceholder="Search education entries..."
+        emptyMessage="No education entries found"
+        emptyDescription="Get started by adding your first education entry."
+      />
 
-      <Modal
-        isOpen={isModalOpen}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
-          setEditingEntry(null);
+          setDeleteModalOpen(false);
+          setItemToDelete(null);
         }}
-        title={editingEntry ? 'Edit Education Entry' : 'Add Education Entry'}
-        size="md"
-      >
-        <EducationForm
-          initialData={editingEntry || undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => {
-            setIsModalOpen(false);
-            setEditingEntry(null);
-          }}
-          isLoading={isSaving}
-        />
-      </Modal>
+        onConfirm={handleDeleteConfirm}
+        title="Delete Education Entry"
+        message="Are you sure you want to delete this education entry? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
-

@@ -49,7 +49,7 @@ export function TagInput({
           w-full px-3 py-2 border rounded-lg
           focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent
           ${error ? 'border-red-500' : 'border-gray-300'}
-          min-h-[42px] flex flex-wrap gap-2 items-center
+          min-h-[42px] flex flex-wrap gap-2 items-center cursor-text
         `}
       >
         {tags.map((tag, index) => (
@@ -86,7 +86,7 @@ export function TagInput({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={tags.length === 0 ? placeholder : ''}
-          className="flex-1 min-w-[120px] outline-none bg-transparent"
+          className="flex-1 min-w-[120px] outline-none bg-transparent cursor-text"
         />
       </div>
       {error && (

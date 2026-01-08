@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════════════════
+   CHART ENHANCEMENTS - Clean & Consistent
+   Professional effects without unnecessary 3D
+   ═══════════════════════════════════════════════════════ */
+
+/* Chart SVG - Subtle depth */
+.recharts-wrapper {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.06));
+  transition: filter 250ms ease;
+}
+
+.card:hover .recharts-wrapper {
+  filter: drop-shadow(0 2px 6px rgba(93, 204, 180, 0.1));
+}
+
+/* Bar Chart - Subtle highlight */
+.recharts-bar-rectangle {
+  transition: opacity 250ms ease;
+  opacity: 1;
+}
+
+.recharts-bar-rectangle:hover {
+  opacity: 0.85;
+}
+
+/* Pie/Donut Chart - Subtle highlight */
+.recharts-pie-sector {
+  transition: opacity 250ms ease;
+  opacity: 1;
+}
+
+.recharts-pie-sector:hover {
+  opacity: 0.9;
+}
+
+/* Line Chart - Consistent interactions */
+.recharts-line-curve {
+  transition: opacity 250ms ease;
+}
+
+.recharts-line-dots .recharts-dot {
+  transition: all 250ms ease;
+}
+
+.recharts-line-dots .recharts-dot:hover {
+  filter: drop-shadow(0 2px 4px rgba(93, 204, 180, 0.3));
+}
+
+/* Active dot - Clean emphasis */
+.recharts-active-dot {
+  filter: drop-shadow(0 2px 6px rgba(93, 204, 180, 0.4));
+}
+
+/* Tooltip - Clean shadow */
+.recharts-tooltip-wrapper {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+}
+
+/* Legend - Subtle interaction */
+.recharts-legend-item {
+  transition: opacity 250ms ease;
+  cursor: pointer;
+}
+
+.recharts-legend-item:hover {
+  opacity: 0.7;
+}
+
+/* Responsive Motion */
+@media (prefers-reduced-motion: reduce) {
+  .recharts-wrapper,
+  .recharts-bar-rectangle,
+  .recharts-pie-sector,
+  .recharts-line-curve,
+  .recharts-line-dots .recharts-dot,
+  .recharts-legend-item {
+    transition: none !important;
+  }
+}
+
+/* Dark Mode */
+[data-theme="dark"] .recharts-wrapper {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+}
+
+[data-theme="dark"] .card:hover .recharts-wrapper {
+  filter: drop-shadow(0 2px 6px rgba(93, 204, 180, 0.15));
+}

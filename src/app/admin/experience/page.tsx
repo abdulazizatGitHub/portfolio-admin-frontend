@@ -1,258 +1,221 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useExperience } from '@/lib/hooks';
-import { ExperienceForm } from '@/components/forms/ExperienceForm';
-import { Card, CardBody } from '@/components/ui/Card';
+import { DataTable } from '@/components/ui/Table/DataTable';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Button } from '@/components/ui/Button';
-import { Modal } from '@/components/ui/Modal';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { Card } from '@/components/ui/Card';
+import { useToast } from '@/lib/hooks/useToast';
+import { Plus } from 'lucide-react';
 import type { ExperienceEntry } from '@/types';
+import type { ColumnDef } from '@tanstack/react-table';
 
-interface SortableExperienceItemProps {
-  entry: ExperienceEntry;
-  onEdit: () => void;
-  onDelete: () => void;
-}
+export default function ExperiencePage() {
+  const router = useRouter();
+  const { data: initialData, isLoading, error } = useExperience();
+  const { success, error: showError } = useToast();
+  const [experience, setExperience] = useState<ExperienceEntry[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-function SortableExperienceItem({
-  entry,
-  onEdit,
-  onDelete,
-}: SortableExperienceItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `experience-${entry.id}` });
+  useEffect(() => {
+    if (initialData) {
+      setExperience(initialData);
+    }
+  }, [initialData]);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+  const handleEdit = (entry: ExperienceEntry) => {
+    router.push(`/admin/experience/edit/${entry.id}`);
   };
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-start gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-    >
-      <button
-        {...attributes}
-        {...listeners}
-        className="p-2 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing mt-1"
-        aria-label="Drag to reorder"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-        </svg>
-      </button>
-      <div className="flex-1">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-500">{entry.period}</p>
-            <h3 className="text-lg font-semibold text-gray-900 mt-1">{entry.title}</h3>
-            <p className="text-gray-600 mt-2">{entry.description}</p>
+  const handleDeleteClick = (entry: ExperienceEntry) => {
+    setItemToDelete(entry.id!);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!itemToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setExperience(experience.filter((e) => e.id !== itemToDelete));
+      success('Experience entry deleted successfully');
+      setDeleteModalOpen(false);
+      setItemToDelete(null);
+    } catch (err) {
+      showError('Failed to delete experience entry');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const columns: ColumnDef<ExperienceEntry>[] = useMemo(
+    () => [
+      {
+        id: 'organization',
+        accessorKey: 'organization',
+        header: 'Organization',
+        cell: ({ row }) => (
+          <div>
+            <span className="font-semibold text-[var(--text-primary)] block">
+              {row.original.organization}
+            </span>
+            <span className="text-sm text-[var(--text-secondary)]">
+              {row.original.overallPeriod}
+            </span>
           </div>
-          <div className="flex gap-2 ml-4">
+        ),
+      },
+      {
+        id: 'roles',
+        accessorKey: 'roles',
+        header: 'Roles',
+        cell: ({ row }) => {
+          const roles = row.original.roles || [];
+          const formatDate = (dateStr: string) => {
+            if (!dateStr) return '';
+            const [year, month] = dateStr.split('-');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthIndex = parseInt(month, 10) - 1;
+            return `${monthNames[monthIndex]} ${year}`;
+          };
+
+          return (
+            <div className="space-y-2">
+              {roles.map((role, index) => {
+                const period = role.isCurrent || !role.endDate
+                  ? `${formatDate(role.startDate)} – Present`
+                  : `${formatDate(role.startDate)} – ${formatDate(role.endDate)}`;
+                
+                return (
+                  <div key={role.id || index} className="text-sm">
+                    <div className="font-medium text-[var(--text-primary)]">
+                      {role.jobTitle}
+                    </div>
+                    <div className="text-xs text-[var(--text-secondary)]">
+                      {period}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        },
+      },
+      {
+        id: 'description',
+        accessorKey: 'roles',
+        header: 'Description',
+        cell: ({ row }) => {
+          const roles = row.original.roles || [];
+          const currentRole = roles.find(r => r.isCurrent) || roles[roles.length - 1];
+          return (
+            <p className="text-[var(--text-secondary)] line-clamp-2 max-w-md text-sm">
+              {currentRole?.description || 'No description'}
+            </p>
+          );
+        },
+      },
+      {
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
             <Button
-              variant="secondary"
+              variant="ghost"
               size="sm"
-              onClick={onEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(row.original);
+              }}
+              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             >
               Edit
             </Button>
             <Button
-              variant="danger"
+              variant="ghost"
               size="sm"
-              onClick={onDelete}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick(row.original);
+              }}
+              className="text-[var(--error-500)] hover:text-[var(--error-600)]"
             >
               Delete
             </Button>
           </div>
-        </div>
-      </div>
-    </div>
+        ),
+      },
+    ],
+    [handleEdit, handleDeleteClick]
   );
-}
-
-export default function ExperiencePage() {
-  const { data: initialData, isLoading, error } = useExperience();
-  const [experience, setExperience] = useState<ExperienceEntry[]>(initialData || []);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<ExperienceEntry | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const activeIndex = experience.findIndex(
-        (e) => `experience-${e.id}` === active.id
-      );
-      const overIndex = experience.findIndex(
-        (e) => `experience-${e.id}` === over.id
-      );
-
-      if (activeIndex !== -1 && overIndex !== -1) {
-        const newExperience = arrayMove(experience, activeIndex, overIndex).map(
-          (entry, index) => ({ ...entry, orderIndex: index })
-        );
-        setExperience(newExperience);
-      }
-    }
-  };
-
-  const handleAdd = () => {
-    setEditingEntry(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEdit = (entry: ExperienceEntry) => {
-    setEditingEntry(entry);
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this experience entry?')) {
-      setExperience(experience.filter((e) => e.id !== id));
-    }
-  };
-
-  const handleSubmit = async (formData: any) => {
-    setIsSaving(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    if (editingEntry?.id) {
-      setExperience(
-        experience.map((e) =>
-          e.id === editingEntry.id ? { ...e, ...formData } : e
-        )
-      );
-    } else {
-      const newEntry: ExperienceEntry = {
-        id: Date.now(),
-        ...formData,
-        orderIndex: experience.length,
-      };
-      setExperience([...experience, newEntry]);
-    }
-
-    setIsSaving(false);
-    setIsModalOpen(false);
-    setEditingEntry(null);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-red-600">Error loading experience entries</div>
+        <Card>
+          <div className="p-6">
+            <div className="text-red-600 dark:text-red-400 mb-4">
+              Error loading experience entries
+            </div>
+            <Button onClick={() => window.location.reload()} variant="primary">
+              Try again
+            </Button>
+          </div>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Experience</h1>
-          <p className="mt-2 text-gray-600">
-            Manage your work experience entries
-          </p>
-        </div>
-        <Button onClick={handleAdd}>Add Experience Entry</Button>
-      </div>
+    <div>
+      <PageHeader
+        title="Experience Management"
+        description="Manage your work experience and professional background"
+        breadcrumbs={[
+          { label: 'Dashboard', href: '/admin' },
+          { label: 'Experience' },
+        ]}
+        actions={
+          <Button
+            variant="primary"
+            onClick={() => router.push('/admin/experience/add')}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Experience
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardBody>
-          {experience.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No experience entries yet.</p>
-              <Button onClick={handleAdd} className="mt-4">
-                Add Your First Entry
-              </Button>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={experience.map((e) => `experience-${e.id}`)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-4">
-                  {experience.map((entry) => (
-                    <SortableExperienceItem
-                      key={entry.id}
-                      entry={entry}
-                      onEdit={() => handleEdit(entry)}
-                      onDelete={() => entry.id && handleDelete(entry.id)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </CardBody>
-      </Card>
+      <DataTable
+        columns={columns}
+        data={experience}
+        isLoading={isLoading}
+        searchable
+        searchPlaceholder="Search experience entries..."
+        emptyMessage="No experience entries found"
+        emptyDescription="Get started by adding your first experience entry."
+      />
 
-      <Modal
-        isOpen={isModalOpen}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
         onClose={() => {
-          setIsModalOpen(false);
-          setEditingEntry(null);
+          setDeleteModalOpen(false);
+          setItemToDelete(null);
         }}
-        title={editingEntry ? 'Edit Experience Entry' : 'Add Experience Entry'}
-        size="md"
-      >
-        <ExperienceForm
-          initialData={editingEntry || undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => {
-            setIsModalOpen(false);
-            setEditingEntry(null);
-          }}
-          isLoading={isSaving}
-        />
-      </Modal>
+        onConfirm={handleDeleteConfirm}
+        title="Delete Experience Entry"
+        message="Are you sure you want to delete this experience entry? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
-
