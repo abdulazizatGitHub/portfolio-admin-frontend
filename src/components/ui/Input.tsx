@@ -4,7 +4,7 @@ import React from 'react';
 import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'prefix'> {
   label?: string;
   error?: string;
   success?: boolean;
@@ -61,8 +61,8 @@ export function Input({
             error
               ? 'border-[var(--danger)] focus:border-[var(--danger)] focus:ring-2 focus:ring-[var(--danger)] focus:ring-opacity-20'
               : success
-              ? 'border-[var(--success)] focus:border-[var(--success)] focus:ring-2 focus:ring-[var(--success)] focus:ring-opacity-20'
-              : 'border-[var(--border-primary)] focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-opacity-20',
+                ? 'border-[var(--success)] focus:border-[var(--success)] focus:ring-2 focus:ring-[var(--success)] focus:ring-opacity-20'
+                : 'border-[var(--border-primary)] focus:border-[var(--accent-primary)] focus:ring-2 focus:ring-[var(--accent-primary)] focus:ring-opacity-20',
             'disabled:bg-[var(--bg-tertiary)] disabled:cursor-not-allowed disabled:opacity-50',
             'focus:outline-none',
             className

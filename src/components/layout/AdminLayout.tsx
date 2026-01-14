@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { CommandPalette } from '@/components/ui/CommandPalette';
@@ -53,15 +54,36 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <>
-      <div className="flex h-screen bg-[var(--bg-secondary)]">
+      <div className="flex h-screen bg-[var(--bg-base)] overflow-hidden">
+        {/* Global Dynamic Mesh Background */}
+        <div className="fixed inset-0 pointer-events-none opacity-40 dark:opacity-20 z-0 overflow-hidden">
+          <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] rounded-full bg-gradient-to-br from-[var(--primary-300)]/30 to-transparent blur-[120px] animate-pulse" />
+          <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-[var(--secondary-300)]/20 to-transparent blur-[140px]" />
+          <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] rounded-full bg-gradient-to-tl from-[var(--primary-200)]/15 to-transparent blur-[80px]" />
+        </div>
+
         <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden main-content">
+
+        <div className="flex-1 flex flex-col min-w-0 main-content relative z-10">
           <Topbar onCommandPaletteOpen={() => setCommandPaletteOpen(true)} />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[var(--bg-secondary)]">
-            {children}
+
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 lg:p-8 scroll-smooth">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="max-w-[1600px] mx-auto w-full"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
       </div>
+
       <CommandPalette
         open={commandPaletteOpen}
         onOpenChange={setCommandPaletteOpen}
@@ -73,4 +95,5 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     </>
   );
 }
+
 

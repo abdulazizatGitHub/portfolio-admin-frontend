@@ -31,7 +31,7 @@ import {
 import { cn } from '@/lib/utils/cn';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
-interface DataTableProps<TData, TValue> {
+export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
@@ -64,8 +64,8 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const debouncedSetGlobalFilter = useCallback(
-    debounce((value: string) => {
+  const debouncedSetGlobalFilter = useMemo(
+    () => debounce((value: string) => {
       setGlobalFilter(value);
     }, 300),
     []
@@ -208,7 +208,7 @@ export function DataTable<TData, TValue>({
                       className={cn(
                         'px-6 h-11 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider',
                         header.column.getCanSort() &&
-                          'cursor-pointer select-none hover:text-[var(--text-primary)] transition-colors'
+                        'cursor-pointer select-none hover:text-[var(--text-primary)] transition-colors'
                       )}
                       onClick={header.column.getToggleSortingHandler()}
                       aria-sort={

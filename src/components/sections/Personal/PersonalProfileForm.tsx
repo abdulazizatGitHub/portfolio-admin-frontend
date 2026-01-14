@@ -5,13 +5,26 @@ import { useRouter } from 'next/navigation';
 import { PersonalProfile } from '@/types';
 import { RolesInput } from '@/components/ui/RolesInput';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { ChevronLeft } from 'lucide-react';
 
 interface PersonalProfileFormProps {
   profile?: PersonalProfile | null;
   onSave: (profile: Partial<PersonalProfile>) => Promise<void>;
   isLoading?: boolean;
 }
+
+import { motion } from 'framer-motion';
+import { User, Briefcase, FileText, Download, Save, X, ChevronLeft, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils/cn';
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+  }
+};
 
 export function PersonalProfileForm({
   profile,
@@ -120,161 +133,262 @@ export function PersonalProfileForm({
   };
 
   return (
-    <div className="personal-profile-form-container">
-      {/* Breadcrumb */}
-      <button onClick={handleCancel} className="breadcrumb-back">
-        <ChevronLeft size={16} />
-        Back to Profiles
-      </button>
+    <div className="max-w-4xl mx-auto pb-24">
+      {/* Breadcrumb Navigation */}
+      <motion.button
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={handleCancel}
+        className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[var(--text-tertiary)] hover:text-[var(--primary-500)] transition-colors mb-8 group"
+      >
+        <div className="p-1.5 rounded-lg bg-[var(--bg-tertiary)] group-hover:bg-[var(--primary-500)]/10 group-hover:text-[var(--primary-500)] transition-colors">
+          <ChevronLeft size={14} />
+        </div>
+        Back to Identity Nexus
+      </motion.button>
 
-      {/* Page Title */}
-      <div className="form-page-header">
-        <h1 className="form-page-title">
-          {profile ? 'Edit Personal Profile' : 'New Personal Profile'}
+      {/* Header Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-12"
+      >
+        <h1 className="text-4xl font-[900] text-[var(--text-primary)] tracking-tight mb-2">
+          {profile ? 'Refine Persona' : 'Initialize Identity'}
         </h1>
-        <p className="form-page-subtitle">
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
           {profile
-            ? 'Update your profile information'
-            : 'Create a new profile for different contexts'}
+            ? 'Updating established professional metadata for current context.'
+            : 'Establishing a new digital representation in the global identity matrix.'}
         </p>
-      </div>
+      </motion.div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="personal-profile-form">
-        <div className="form-content">
-          {/* Basic Information */}
-          <section className="form-section">
-            <h2 className="form-section-title">Basic Information</h2>
+      {/* Form Grid */}
+      <form onSubmit={handleSubmit} className="space-y-10">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: {
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+          className="space-y-10"
+        >
+          {/* Identity Fundamentals */}
+          <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--primary-500)] to-transparent"></div>
 
-            <div className="form-field">
-              <label htmlFor="name" className="form-label">
-                Full Name <span className="required">*</span>
-              </label>
-              <input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                className={`form-input ${errors.name ? 'error' : ''}`}
-                placeholder="John Doe"
-              />
-              {errors.name && <p className="form-error">{errors.name}</p>}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 rounded-2xl bg-[var(--primary-500)]/10 text-[var(--primary-500)]">
+                <User size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Identity Fundamentals</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">Core personal descriptors</p>
+              </div>
             </div>
 
-            <div className="form-field">
-              <label htmlFor="titlePrefix" className="form-label">
-                Title Prefix <span className="required">*</span>
-              </label>
-              <input
-                id="titlePrefix"
-                type="text"
-                value={formData.titlePrefix}
-                onChange={(e) => handleChange('titlePrefix', e.target.value)}
-                className={`form-input ${errors.titlePrefix ? 'error' : ''}`}
-                placeholder="Hi, I'm"
-              />
-              {errors.titlePrefix && <p className="form-error">{errors.titlePrefix}</p>}
+            <div className="grid gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
+                    Full Designation <span className="text-[var(--error-500)]">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    className={cn(
+                      "w-full px-5 py-3.5 rounded-2xl border transition-all premium-input",
+                      errors.name ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                    )}
+                    placeholder="e.g., Abdul Hannan"
+                  />
+                  {errors.name && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.name}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="titlePrefix" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
+                    Introduction Hook <span className="text-[var(--error-500)]">*</span>
+                  </label>
+                  <input
+                    id="titlePrefix"
+                    type="text"
+                    value={formData.titlePrefix}
+                    onChange={(e) => handleChange('titlePrefix', e.target.value)}
+                    className={cn(
+                      "w-full px-5 py-3.5 rounded-2xl border transition-all premium-input",
+                      errors.titlePrefix ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                    )}
+                    placeholder="Hi, I'm"
+                  />
+                  {errors.titlePrefix && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.titlePrefix}</p>}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="description" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
+                  Professional Manifesto <span className="text-[var(--error-500)]">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleChange('description', e.target.value)}
+                  className={cn(
+                    "w-full px-5 py-4 rounded-3xl border transition-all premium-input min-h-[160px] resize-none",
+                    errors.description ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                  )}
+                  placeholder="Envision your professional impact..."
+                  rows={6}
+                />
+                {errors.description && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.description}</p>}
+              </div>
+            </div>
+          </motion.section>
+
+          {/* Professional Trajectory */}
+          <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--accent-500)] to-transparent"></div>
+
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 rounded-2xl bg-[var(--accent-500)]/10 text-[var(--accent-500)]">
+                <Briefcase size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Professional Trajectory</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">Designated expertise roles</p>
+              </div>
             </div>
 
-            <div className="form-field">
-              <label htmlFor="description" className="form-label">
-                Professional Description <span className="required">*</span>
-              </label>
-              <textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                className={`form-textarea ${errors.description ? 'error' : ''}`}
-                placeholder="A passionate full-stack developer..."
-                rows={4}
+            <div className="space-y-4">
+              <RolesInput
+                roles={formData.roles || []}
+                onChange={(roles) => handleChange('roles', roles)}
+                maxRoles={10}
               />
-              {errors.description && <p className="form-error">{errors.description}</p>}
+              {errors.roles && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.roles}</p>}
             </div>
-          </section>
+          </motion.section>
 
-          {/* Roles */}
-          <section className="form-section">
-            <h2 className="form-section-title">
-              Professional Roles <span className="required">*</span>
-            </h2>
-            <RolesInput
-              roles={formData.roles || []}
-              onChange={(roles) => handleChange('roles', roles)}
-              maxRoles={10}
-            />
-            {errors.roles && <p className="form-error">{errors.roles}</p>}
-          </section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            {/* Credential Artifact */}
+            <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--info-500)] to-transparent"></div>
 
-          {/* CV Upload */}
-          <section className="form-section">
-            <h2 className="form-section-title">CV/Resume Upload</h2>
-            <FileUpload
-              accept=".pdf,application/pdf"
-              maxSize={5 * 1024 * 1024} // 5MB
-              currentFile={currentFile}
-              onFileSelect={handleFileSelect}
-              onFileRemove={handleFileRemove}
-              label="Drop PDF here or click to browse"
-            />
-          </section>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 rounded-2xl bg-[var(--info-500)]/10 text-[var(--info-500)]">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Credential Artifact</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">CV/Resume transmission</p>
+                </div>
+              </div>
 
-          {/* CV Download Name */}
-          <section className="form-section">
-            <h2 className="form-section-title">CV Download Filename</h2>
-            <div className="form-field">
-              <label htmlFor="cvDownloadName" className="form-label">
-                Filename <span className="required">*</span>
-              </label>
-              <input
-                id="cvDownloadName"
-                type="text"
-                value={formData.cvDownloadName}
-                onChange={(e) => handleChange('cvDownloadName', e.target.value)}
-                className={`form-input ${errors.cvDownloadName ? 'error' : ''}`}
-                placeholder="John_Doe_Resume.pdf"
+              <FileUpload
+                accept=".pdf,application/pdf"
+                maxSize={5 * 1024 * 1024} // 5MB
+                currentFile={currentFile}
+                onFileSelect={handleFileSelect}
+                onFileRemove={handleFileRemove}
+                label="Initialize PDF Transfer"
               />
-              <p className="form-hint">
-                This is the filename that will be used when someone downloads your CV
-              </p>
-              {errors.cvDownloadName && <p className="form-error">{errors.cvDownloadName}</p>}
-            </div>
-          </section>
+            </motion.section>
 
-          {/* Options */}
-          <section className="form-section">
-            <h2 className="form-section-title">Options</h2>
-            <div className="form-checkbox">
-              <input
-                id="isDefault"
-                type="checkbox"
-                checked={formData.isDefault}
-                onChange={(e) => handleChange('isDefault', e.target.checked)}
-                className="checkbox"
-              />
-              <label htmlFor="isDefault" className="checkbox-label">
-                Set as default profile
-              </label>
-            </div>
-            <p className="form-hint">
-              The default profile will be shown on your main portfolio page
-            </p>
-          </section>
-        </div>
+            {/* Distribution Metadata */}
+            <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--success-500)] to-transparent"></div>
 
-        {/* Form Actions */}
-        <div className="form-actions">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="btn-secondary"
-            disabled={isLoading}
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 rounded-2xl bg-[var(--success-500)]/10 text-[var(--success-500)]">
+                  <Download size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Access Control</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">Distribution settings</p>
+                </div>
+              </div>
+
+              <div className="space-y-8">
+                <div className="space-y-2">
+                  <label htmlFor="cvDownloadName" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
+                    Download Designation <span className="text-[var(--error-500)]">*</span>
+                  </label>
+                  <input
+                    id="cvDownloadName"
+                    type="text"
+                    value={formData.cvDownloadName}
+                    onChange={(e) => handleChange('cvDownloadName', e.target.value)}
+                    className={cn(
+                      "w-full px-5 py-3.5 rounded-2xl border transition-all premium-input",
+                      errors.cvDownloadName ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                    )}
+                    placeholder="e.g., Hannan_Resume_2024.pdf"
+                  />
+                  <p className="text-[10px] font-medium text-[var(--text-tertiary)] italic ml-1">
+                    Final filename upon external retrieval.
+                  </p>
+                  {errors.cvDownloadName && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.cvDownloadName}</p>}
+                </div>
+
+                <div className="pt-4">
+                  <label className="flex items-center gap-4 p-5 rounded-3xl glass-panel bg-white/5 dark:bg-black/5 hover:border-[var(--primary-500)] transition-all cursor-pointer group/toggle">
+                    <input
+                      id="isDefault"
+                      type="checkbox"
+                      checked={formData.isDefault}
+                      onChange={(e) => handleChange('isDefault', e.target.checked)}
+                      className="w-5 h-5 rounded-lg accent-[var(--primary-500)] cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <span className="block text-sm font-[900] text-[var(--text-primary)] tracking-tight">Primary Identity Nexus</span>
+                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)]">Designated for global exposition.</span>
+                    </div>
+                    {formData.isDefault && <Sparkles size={18} className="text-[var(--primary-500)] animate-pulse" />}
+                  </label>
+                </div>
+              </div>
+            </motion.section>
+          </div>
+
+          {/* Form Actions */}
+          <motion.div
+            variants={sectionVariants}
+            className="flex items-center justify-between p-8 glass-panel rounded-[40px] border-t-4 border-t-[var(--primary-500)]"
           >
-            Cancel
-          </button>
-          <button type="submit" className="btn-primary" disabled={isLoading}>
-            {isLoading ? 'Saving...' : profile ? 'Update Profile' : 'Create Profile'}
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95 flex items-center gap-2"
+              disabled={isLoading}
+            >
+              <X size={14} />
+              Abort
+            </button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isLoading}
+              className="px-12 py-4 rounded-2xl shadow-2xl shadow-[var(--primary-500)]/20 text-[11px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  <span>Syncing...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={14} />
+                  <span>{profile ? 'Authorize Change' : 'Finalize Identity'}</span>
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </motion.div>
       </form>
     </div>
   );

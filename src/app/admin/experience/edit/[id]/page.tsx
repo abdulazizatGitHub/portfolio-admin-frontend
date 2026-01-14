@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useExperience } from '@/lib/hooks';
 import { ExperienceForm } from '@/components/sections/Experience/ExperienceForm';
-import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/lib/hooks/useToast';
@@ -21,9 +20,14 @@ export default function EditExperiencePage() {
   useEffect(() => {
     if (data && params.id) {
       const entry = data.find((e) => e.id === Number(params.id));
-      setExperienceEntry(entry);
+      if (entry) {
+        setExperienceEntry(entry);
+      } else {
+        showError('Experience entry not found');
+        router.push('/admin/experience');
+      }
     }
-  }, [data, params.id]);
+  }, [data, params.id, showError, router]);
 
   const handleSubmit = async (data: ExperienceEntry) => {
     setIsLoading(true);
@@ -44,7 +48,7 @@ export default function EditExperiencePage() {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -52,45 +56,38 @@ export default function EditExperiencePage() {
 
   if (!experienceEntry) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Card>
-          <div className="p-6">
-            <div className="text-gray-600 mb-4">Experience entry not found</div>
-            <button
-              onClick={() => router.push('/admin/experience')}
-              className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
-            >
-              Back to Experience
-            </button>
-          </div>
-        </Card>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      {/* Page Header */}
       <PageHeader
-        title="Edit Experience Entry"
-        description="Update the information for this experience entry"
+        title="Edit Experience"
+        description="Update your work experience entry details"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Experience', href: '/admin/experience' },
-          { label: 'Edit Entry' },
+          { label: 'Edit Experience' },
         ]}
       />
 
-      <Card>
-        <div className="p-6">
-          <ExperienceForm
-            initialData={experienceEntry}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={isLoading}
-          />
+      {/* Centered Form Container */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-[1000px]">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
+            <ExperienceForm
+              initialData={experienceEntry}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }
-

@@ -1,12 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Formik, Form } from 'formik';
+import { motion } from 'framer-motion';
+import { Building2, MapPin, Clock, FileText, Plus, Save, X, Briefcase, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { FormSection } from '@/components/ui/FormSection';
 import { experienceSchema } from '@/lib/validations/schemas';
 import { RolesAccordion } from './RolesAccordion';
 import type { ExperienceEntry, ExperienceRole, EmploymentType } from '@/types';
+import { cn } from '@/lib/utils/cn';
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+  }
+};
 
 interface ExperienceFormProps {
   initialData?: Partial<ExperienceEntry>;
@@ -46,11 +57,13 @@ export function ExperienceForm({
     return roles[0]?.id ?? null;
   });
 
-  // Calculate overall period from roles
   const calculateOverallPeriod = (rolesList: ExperienceRole[]): string => {
     if (rolesList.length === 0) return '';
 
-    const sortedRoles = [...rolesList].sort((a, b) => {
+    const validRoles = rolesList.filter(r => r.startDate);
+    if (validRoles.length === 0) return '';
+
+    const sortedRoles = [...validRoles].sort((a, b) => {
       if (a.startDate < b.startDate) return -1;
       if (a.startDate > b.startDate) return 1;
       return 0;
@@ -117,7 +130,6 @@ export function ExperienceForm({
     const reindexedRoles = newRoles.map((role, i) => ({ ...role, orderIndex: i }));
     setRoles(reindexedRoles);
 
-    // If removed role was expanded, expand first role
     if (expandedRoleId === roleId) {
       setExpandedRoleId(reindexedRoles[0]?.id ?? null);
     }
@@ -139,26 +151,13 @@ export function ExperienceForm({
   };
 
   const handleSubmit = async (values: any) => {
-    // Validate roles manually
-    if (roles.length === 0) {
-      return;
-    }
+    if (roles.length === 0) return;
 
     const invalidRoles = roles.filter(
       (role) => !role.jobTitle.trim() || !role.startDate || !role.description.trim()
     );
-    if (invalidRoles.length > 0) {
-      return;
-    }
+    if (invalidRoles.length > 0) return;
 
-    // Check for multiple current roles
-    const currentRoles = roles.filter((r) => r.isCurrent);
-    if (currentRoles.length > 1) {
-      // Warn but allow - we'll take the first one
-      console.warn('Multiple roles marked as current, using first one');
-    }
-
-    // Sort roles by start date and re-index
     const sortedRoles = [...roles]
       .sort((a, b) => {
         if (a.startDate < b.startDate) return -1;
@@ -178,7 +177,7 @@ export function ExperienceForm({
       roles: sortedRoles,
       overallPeriod,
       orderIndex: initialData?.orderIndex ?? 0,
-    };
+    } as ExperienceEntry;
     await onSubmit(experienceData);
   };
 
@@ -193,126 +192,188 @@ export function ExperienceForm({
     >
       {({ isSubmitting, errors, values, setFieldValue }) => {
         return (
-          <Form>
-            <FormSection
-              title="Experience Details"
-              description="Enter your work experience. You can add multiple roles if you've been promoted or changed positions within the same organization."
+          <Form className="max-w-4xl mx-auto space-y-10 pb-20">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1
+                  }
+                }
+              }}
+              className="space-y-10"
             >
-              {/* Organization Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-field">
-                  <label className="form-label">
-                    Organization <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={values.organization}
-                    onChange={(e) => setFieldValue('organization', e.target.value)}
-                    placeholder="e.g., Tech Corp Inc."
-                    className="form-input"
-                    required
-                  />
-                  {errors.organization && (
-                    <p className="form-error">{errors.organization as string}</p>
+              {/* Organizational Core */}
+              <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--primary-500)] to-transparent"></div>
+
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 rounded-2xl bg-[var(--primary-500)]/10 text-[var(--primary-500)]">
+                    <Building2 size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Organization Details</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Company and location details</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] ml-1">
+                      Organization <span className="text-[var(--error-500)]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={values.organization}
+                      onChange={(e) => setFieldValue('organization', e.target.value)}
+                      placeholder="e.g., Tech Company"
+                      className={cn(
+                        "w-full px-5 py-4 rounded-2xl border transition-all premium-input",
+                        errors.organization ? "border-[var(--error-500)]" : "border-[var(--border-subtle)] focus:border-[var(--primary-500)]"
+                      )}
+                    />
+                    {errors.organization && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.organization as string}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] ml-1">Location</label>
+                    <div className="relative group/input">
+                      <MapPin size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] group-focus-within/input:text-[var(--primary-500)] transition-colors" />
+                      <input
+                        type="text"
+                        value={values.location}
+                        onChange={(e) => setFieldValue('location', e.target.value)}
+                        placeholder="e.g., Virtual / Remote"
+                        className="w-full pl-12 pr-5 py-4 rounded-2xl border border-[var(--border-subtle)] transition-all premium-input focus:border-[var(--primary-500)] text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] ml-1">Employment Type</label>
+                    <div className="relative group/input">
+                      <Clock size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] group-focus-within/input:text-[var(--primary-500)] transition-colors" />
+                      <select
+                        value={values.employmentType}
+                        onChange={(e) => setFieldValue('employmentType', e.target.value)}
+                        className="w-full pl-12 pr-5 py-4 rounded-2xl border border-[var(--border-subtle)] transition-all premium-input focus:border-[var(--primary-500)] appearance-none text-sm"
+                      >
+                        <option value="">Select Type</option>
+                        <option value="full_time">Full-time</option>
+                        <option value="part_time">Part-time</option>
+                        <option value="contract">Contract</option>
+                        <option value="internship">Internship</option>
+                        <option value="freelance">Freelance</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {overallPeriod && (
+                    <div className="p-4 rounded-[28px] bg-[var(--primary-500)]/[0.03] border border-[var(--primary-500)]/10 flex items-center gap-4">
+                      <div className="p-3 rounded-2xl bg-[var(--primary-500)]/10 text-[var(--primary-500)] shadow-lg shadow-[var(--primary-500)]/5">
+                        <Calendar size={20} />
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Total Duration</span>
+                        <span className="block text-sm font-bold text-[var(--primary-500)] tracking-tight">{overallPeriod}</span>
+                      </div>
+                    </div>
                   )}
                 </div>
+              </motion.section>
 
-                <div className="form-field">
-                  <label className="form-label">Location</label>
-                  <input
-                    type="text"
-                    value={values.location}
-                    onChange={(e) => setFieldValue('location', e.target.value)}
-                    placeholder="e.g., San Francisco, CA"
-                    className="form-input"
+              {/* Experience Summary */}
+              <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--accent-500)] to-transparent"></div>
+
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="p-3 rounded-2xl bg-[var(--accent-500)]/10 text-[var(--accent-500)]">
+                    <FileText size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Work Summary</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Brief overview of your role</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <textarea
+                    value={values.summary}
+                    onChange={(e) => setFieldValue('summary', e.target.value)}
+                    placeholder="Provide a strategic overview of your impact at this organization..."
+                    className="w-full px-5 py-4 rounded-[32px] border border-[var(--border-subtle)] transition-all premium-input min-h-[140px] resize-none focus:border-[var(--accent-500)] text-sm"
+                    rows={4}
                   />
+                  <p className="text-[10px] font-medium text-[var(--text-tertiary)] ml-2">Describe your overall experience at this company.</p>
                 </div>
-              </div>
+              </motion.section>
 
-              <div className="form-field">
-                <label className="form-label">Employment Type</label>
-                <select
-                  value={values.employmentType}
-                  onChange={(e) => setFieldValue('employmentType', e.target.value)}
-                  className="form-input"
-                >
-                  <option value="">Select employment type</option>
-                  <option value="full_time">Full-time</option>
-                  <option value="part_time">Part-time</option>
-                  <option value="contract">Contract</option>
-                  <option value="internship">Internship</option>
-                  <option value="freelance">Freelance</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+              {/* Roles Architecture */}
+              <motion.section variants={sectionVariants} className="space-y-6">
+                <div className="flex items-center justify-between px-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-[var(--info-500)]/10 text-[var(--info-500)]">
+                      <Briefcase size={20} />
+                    </div>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Roles and Responsibilities</h3>
+                  </div>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleAddRole}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[var(--primary-500)] to-[var(--primary-600)] text-white text-[11px] font-black uppercase tracking-widest shadow-xl shadow-[var(--primary-500)]/20"
+                  >
+                    <Plus size={16} />
+                    Add Role
+                  </motion.button>
+                </div>
 
-              <div className="form-field">
-                <label className="form-label">Summary</label>
-                <textarea
-                  value={values.summary}
-                  onChange={(e) => setFieldValue('summary', e.target.value)}
-                  placeholder="Optional organization-level summary or overview..."
-                  className="form-textarea"
-                  rows={3}
+                <RolesAccordion
+                  roles={roles}
+                  expandedRoleId={expandedRoleId}
+                  onExpand={handleExpand}
+                  onCollapse={handleCollapse}
+                  onRoleChange={handleRoleChange}
+                  onRoleRemove={handleRoleRemove}
+                  onAddRole={handleAddRole}
                 />
-                <p className="form-hint text-xs mt-1">
-                  Brief overview of your overall experience at this organization
-                </p>
-              </div>
+              </motion.section>
 
-              {/* Overall Period Preview */}
-              {overallPeriod && (
-                <div className="overall-period-preview">
-                  <div className="text-sm text-[var(--text-secondary)] mb-1">
-                    Overall Tenure at {values.organization || 'this organization'}
-                  </div>
-                  <div className="text-lg font-semibold text-[var(--text-primary)]">
-                    {overallPeriod}
-                  </div>
-                </div>
-              )}
-
-              {/* Roles Accordion */}
-              <RolesAccordion
-                roles={roles}
-                expandedRoleId={expandedRoleId}
-                onExpand={handleExpand}
-                onCollapse={handleCollapse}
-                onRoleChange={handleRoleChange}
-                onRoleRemove={handleRoleRemove}
-                onAddRole={handleAddRole}
-              />
-            </FormSection>
-
-            <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={onCancel}
-                disabled={isSubmitting || isLoading}
-                className="cursor-pointer"
+              {/* Form Actions */}
+              <motion.div
+                variants={sectionVariants}
+                className="flex items-center justify-between p-8 glass-panel rounded-[40px] border-t-4 border-t-[var(--primary-500)]"
               >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                loading={isSubmitting || isLoading}
-                className="cursor-pointer"
-                disabled={
-                  !values.organization ||
-                  roles.length === 0 ||
-                  roles.some(
-                    (r) =>
-                      !r.jobTitle.trim() ||
-                      !r.startDate ||
-                      !r.description.trim() ||
-                      (r.endDate && r.endDate < r.startDate)
-                  )
-                }
-              >
-                {initialData?.id ? 'Update' : 'Create'} Experience Entry
-              </Button>
-            </div>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  disabled={isSubmitting || isLoading}
+                  className="px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95 flex items-center gap-2"
+                >
+                  <X size={14} />
+                  Cancel
+                </button>
+                <Button
+                  type="submit"
+                  loading={isSubmitting || isLoading}
+                  className="px-12 py-4 rounded-2xl shadow-xl shadow-[var(--primary-500)]/20 text-[11px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center gap-2 text-white"
+                  disabled={
+                    !values.organization ||
+                    roles.length === 0 ||
+                    roles.some((r) => !r.jobTitle.trim() || !r.startDate || !r.description.trim())
+                  }
+                >
+                  {!isSubmitting && !isLoading && <Save size={14} />}
+                  <span>{initialData?.id ? 'Save Changes' : 'Create Experience'}</span>
+                </Button>
+              </motion.div>
+            </motion.div>
           </Form>
         );
       }}

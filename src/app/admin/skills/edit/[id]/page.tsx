@@ -2,34 +2,54 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useSkills } from '@/lib/hooks';
-import { SkillsForm } from '@/components/sections/Skills/SkillsForm';
-import { Card } from '@/components/ui/Card';
+import { EnhancedSkillForm } from '@/components/sections/Skills/EnhancedSkillForm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/lib/hooks/useToast';
-import type { Skill } from '@/types';
+import { useSkills } from '@/lib/hooks/useSkills';
+import type { SkillFormData } from '@/types/skills';
 
 export default function EditSkillPage() {
   const router = useRouter();
   const params = useParams();
-  const { data, isLoading: isFetching } = useSkills();
+  const skillId = params?.id as string;
+
   const { success, error: showError } = useToast();
-  const [skill, setSkill] = useState<Skill | undefined>(undefined);
+  const { data: skills } = useSkills();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSkill, setIsLoadingSkill] = useState(true);
+  const [currentSkill, setCurrentSkill] = useState<SkillFormData | null>(null);
 
+  // Get existing skill names for duplicate detection (excluding current skill)
+  const existingSkills = skills
+    ?.filter(s => s.id?.toString() !== skillId)
+    .map(s => s.name) || [];
+
+  // Load skill data
   useEffect(() => {
-    if (data && params.id) {
-      const foundSkill = data.find((s) => s.id === Number(params.id));
-      setSkill(foundSkill);
+    if (skills) {
+      const skill = skills.find(s => s.id?.toString() === skillId);
+      if (skill) {
+        setCurrentSkill({
+          name: skill.name,
+          category: skill.category,
+          level: skill.level,
+          context: skill.context,
+        });
+        setIsLoadingSkill(false);
+      } else {
+        showError('Skill not found');
+        router.push('/admin/skills');
+      }
     }
-  }, [data, params.id]);
+  }, [skillId, skills, showError, router]);
 
-  const handleSubmit = async (data: Skill) => {
+  const handleSubmit = async (data: SkillFormData) => {
     setIsLoading(true);
     try {
+      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Updating skill:', data);
+      console.log('Updating skill:', skillId, data);
       success('Skill updated successfully');
       router.push('/admin/skills');
     } catch (err) {
@@ -42,37 +62,20 @@ export default function EditSkillPage() {
     router.push('/admin/skills');
   };
 
-  if (isFetching) {
+  if (isLoadingSkill) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" />
       </div>
     );
   }
 
-  if (!skill) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Card>
-          <div className="p-6">
-            <div className="text-gray-600 mb-4">Skill not found</div>
-            <button
-              onClick={() => router.push('/admin/skills')}
-              className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
-            >
-              Back to Skills
-            </button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <>
+    <div className="space-y-6">
+      {/* Page Header */}
       <PageHeader
         title="Edit Skill"
-        description="Update the information for this skill"
+        description="Update your skill details and proficiency level"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Skills', href: '/admin/skills' },
@@ -80,17 +83,20 @@ export default function EditSkillPage() {
         ]}
       />
 
-      <Card>
-        <div className="p-6">
-          <SkillsForm
-            initialData={skill}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={isLoading}
-          />
+      {/* Centered Form Container */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-[900px]">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
+            <EnhancedSkillForm
+              initialData={currentSkill || undefined}
+              existingSkills={existingSkills}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }
-

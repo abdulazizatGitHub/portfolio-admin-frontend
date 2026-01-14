@@ -67,19 +67,25 @@ export const skillSchema = Yup.object().shape({
     .required('Level is required')
     .min(0, 'Level must be at least 0')
     .max(100, 'Level must be at most 100'),
-  category: Yup.string().oneOf(['technical', 'ai'], 'Invalid category').required('Category is required'),
+  category: Yup.string().oneOf(['frontend', 'backend', 'database', 'devops', 'tools', 'soft', 'technical', 'ai'], 'Invalid category').required('Category is required'),
 });
 
 // Project Schema
 export const projectSchema = Yup.object().shape({
   title: Yup.string().required('Title is required'),
   description: Yup.string().required('Description is required'),
-  tech: Yup.array()
+  imagePath: Yup.string().optional(), // Using thumbnail instead in new type
+  thumbnail: Yup.string().required('Thumbnail is required'),
+  shortDescription: Yup.string().required('Short description is required'),
+  liveUrl: Yup.string().url('Must be a valid URL').optional(),
+  githubUrl: Yup.string().url('Must be a valid URL').optional(),
+  status: Yup.string().oneOf(['live', 'draft', 'development', 'archived']).required(),
+  category: Yup.string().required(),
+  startDate: Yup.string().required(),
+  endDate: Yup.string().nullable().optional(),
+  techStack: Yup.array()
     .of(Yup.string().required())
     .min(1, 'At least one technology is required'),
-  imagePath: Yup.string().required('Image path is required'),
-  liveUrl: Yup.string().url('Must be a valid URL').optional(),
-  sourceUrl: Yup.string().url('Must be a valid URL').optional(),
   isPublished: Yup.boolean().required(),
 });
 

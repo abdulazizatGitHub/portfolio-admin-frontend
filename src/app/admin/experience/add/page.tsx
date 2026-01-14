@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ExperienceForm } from '@/components/sections/Experience/ExperienceForm';
-import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/lib/hooks/useToast';
 import type { ExperienceEntry } from '@/types';
@@ -31,27 +30,30 @@ export default function AddExperiencePage() {
   };
 
   return (
-    <>
+    <div className="space-y-6">
+      {/* Page Header */}
       <PageHeader
-        title="Add Experience Entry"
+        title="Add Experience"
         description="Add a new work experience entry to showcase your professional background"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Experience', href: '/admin/experience' },
-          { label: 'Add Entry' },
+          { label: 'Add Experience' },
         ]}
       />
 
-      <Card>
-        <div className="p-6">
-          <ExperienceForm
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={isLoading}
-          />
+      {/* Centered Form Container */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-[1000px]">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
+            <ExperienceForm
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }
-

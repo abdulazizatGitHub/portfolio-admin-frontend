@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useEducation } from '@/lib/hooks';
 import { EducationForm } from '@/components/sections/Education/EducationForm';
-import { Card } from '@/components/ui/Card';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/lib/hooks/useToast';
@@ -21,16 +20,19 @@ export default function EditEducationPage() {
   useEffect(() => {
     if (data && params.id) {
       const entry = data.find((e) => e.id === Number(params.id));
-      setEducationEntry(entry);
+      if (entry) {
+        setEducationEntry(entry);
+      } else {
+        showError('Education entry not found');
+        router.push('/admin/education');
+      }
     }
-  }, [data, params.id]);
+  }, [data, params.id, showError, router]);
 
   const handleSubmit = async (data: EducationEntry) => {
     setIsLoading(true);
     try {
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      // In real app, this would call the API
       console.log('Updating education entry:', data);
       success('Education entry updated successfully');
       router.push('/admin/education');
@@ -46,7 +48,7 @@ export default function EditEducationPage() {
 
   if (isFetching) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -54,45 +56,38 @@ export default function EditEducationPage() {
 
   if (!educationEntry) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Card>
-          <div className="p-6">
-            <div className="text-gray-600 mb-4">Education entry not found</div>
-            <button
-              onClick={() => router.push('/admin/education')}
-              className="text-sm text-blue-600 hover:text-blue-700 cursor-pointer"
-            >
-              Back to Education
-            </button>
-          </div>
-        </Card>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   return (
-    <>
+    <div className="space-y-6">
+      {/* Page Header */}
       <PageHeader
-        title="Edit Education Entry"
-        description="Update the information for this education entry"
+        title="Edit Education"
+        description="Update your education entry details"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Education', href: '/admin/education' },
-          { label: 'Edit Entry' },
+          { label: 'Edit Education' },
         ]}
       />
 
-      <Card>
-        <div className="p-6">
-          <EducationForm
-            initialData={educationEntry}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={isLoading}
-          />
+      {/* Centered Form Container */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-[1000px]">
+          <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
+            <EducationForm
+              initialData={educationEntry}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
-      </Card>
-    </>
+      </div>
+    </div>
   );
 }
-

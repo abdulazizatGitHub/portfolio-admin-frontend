@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchAboutContent } from '@/lib/data/mockData';
-import type { AboutContent } from '@/types';
+import { fetchAboutSections } from '@/lib/data/mockData';
+import type { AboutSection } from '@/types';
 
 export function useAboutContent() {
-  return useQuery<AboutContent>({
-    queryKey: ['about'],
-    queryFn: fetchAboutContent,
+  return useQuery<AboutSection[]>({
+    queryKey: ['about-sections'],
+    queryFn: fetchAboutSections,
   });
 }
 

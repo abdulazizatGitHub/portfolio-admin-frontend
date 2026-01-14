@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { Card } from '../Card';
 import { EmptyState } from '../EmptyState';
 import { Skeleton } from '../Skeleton';
@@ -38,7 +39,7 @@ export function CardGridView<TData>({
     return (
       <div className={cn('grid gap-6', columnClasses[columns])}>
         {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} height={300} variant="rectangular" />
+          <Skeleton key={i} height={300} />
         ))}
       </div>
     );
@@ -64,16 +65,19 @@ export function CardGridView<TData>({
 
   return (
     <div className={cn('grid gap-6', columnClasses[columns])}>
-      {data.map((item, index) => (
-        <motion.div
-          key={index}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05, duration: 0.3 }}
-        >
-          {renderCard(item, index)}
-        </motion.div>
-      ))}
+      <AnimatePresence>
+        {data.map((item, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ delay: index * 0.05, duration: 0.3 }}
+          >
+            {renderCard(item, index)}
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
@@ -109,17 +113,19 @@ export function ProjectCard({
       {/* Image Section */}
       <div className="relative h-48 bg-gradient-to-br from-purple-500/20 to-pink-500/20 overflow-hidden group">
         {image ? (
-          <img
+          <Image
             src={image}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-4xl">🚀</div>
           </div>
         )}
-        
+
         {/* Overlay with actions on hover */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           {onView && (

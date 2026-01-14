@@ -14,6 +14,8 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
 }
 
+import { motion } from 'framer-motion';
+
 export function PageHeader({
   title,
   description,
@@ -21,23 +23,37 @@ export function PageHeader({
   actions,
 }: PageHeaderProps) {
   return (
-    <div className="mb-8">
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="mb-10"
+    >
       {breadcrumbs && breadcrumbs.length > 0 && (
-        <Breadcrumbs items={breadcrumbs} className="mb-2" />
+        <Breadcrumbs items={breadcrumbs} className="mb-4" />
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl lg:text-4xl font-[900] text-[var(--text-primary)] tracking-tight">
             {title}
           </h1>
           {description && (
-            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+            <p className="text-base text-[var(--text-secondary)] font-medium max-w-2xl leading-relaxed">
               {description}
             </p>
           )}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-3 shrink-0"
+          >
+            {actions}
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 }

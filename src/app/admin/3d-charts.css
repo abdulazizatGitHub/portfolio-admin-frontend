@@ -1,69 +1,85 @@
 /* ═══════════════════════════════════════════════════════
-   CHART ENHANCEMENTS - Clean & Consistent
-   Professional effects without unnecessary 3D
+   CHART ENHANCEMENTS - Premium 3D & Glow
+   High-end visual effects for data visualization
    ═══════════════════════════════════════════════════════ */
 
-/* Chart SVG - Subtle depth */
+:root {
+  --chart-glow-opacity: 0.15;
+  --chart-perspective: 1200px;
+}
+
+/* Chart SVG - 3D Depth & Glow */
 .recharts-wrapper {
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.06));
-  transition: filter 250ms ease;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.08));
+  transition: all 400ms cubic-bezier(0.23, 1, 0.32, 1);
+  perspective: var(--chart-perspective);
 }
 
 .card:hover .recharts-wrapper {
-  filter: drop-shadow(0 2px 6px rgba(93, 204, 180, 0.1));
+  filter: drop-shadow(0 12px 24px rgba(93, 204, 180, 0.2));
+  transform: translateZ(10px);
 }
 
-/* Bar Chart - Subtle highlight */
+/* Bar Chart - Premium 3D Effects */
 .recharts-bar-rectangle {
-  transition: opacity 250ms ease;
-  opacity: 1;
+  transition: all 300ms ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .recharts-bar-rectangle:hover {
-  opacity: 0.85;
-}
-
-/* Pie/Donut Chart - Subtle highlight */
-.recharts-pie-sector {
-  transition: opacity 250ms ease;
-  opacity: 1;
-}
-
-.recharts-pie-sector:hover {
-  opacity: 0.9;
-}
-
-/* Line Chart - Consistent interactions */
-.recharts-line-curve {
-  transition: opacity 250ms ease;
-}
-
-.recharts-line-dots .recharts-dot {
-  transition: all 250ms ease;
-}
-
-.recharts-line-dots .recharts-dot:hover {
-  filter: drop-shadow(0 2px 4px rgba(93, 204, 180, 0.3));
-}
-
-/* Active dot - Clean emphasis */
-.recharts-active-dot {
-  filter: drop-shadow(0 2px 6px rgba(93, 204, 180, 0.4));
-}
-
-/* Tooltip - Clean shadow */
-.recharts-tooltip-wrapper {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
-}
-
-/* Legend - Subtle interaction */
-.recharts-legend-item {
-  transition: opacity 250ms ease;
+  filter: brightness(1.1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
   cursor: pointer;
 }
 
-.recharts-legend-item:hover {
-  opacity: 0.7;
+/* Pie/Donut Chart - Floating Sectors */
+.recharts-pie-sector {
+  transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+.recharts-pie-sector:hover {
+  transform: scale(1.05);
+  filter: brightness(1.05) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.25));
+  cursor: pointer;
+}
+
+/* Line Chart - Neon Glow */
+.recharts-line-curve {
+  filter: drop-shadow(0 0 8px currentColor);
+  stroke-width: 3;
+}
+
+.recharts-line-dots .recharts-dot {
+  transition: all 300ms ease;
+  stroke-width: 2;
+  stroke: var(--bg-surface);
+}
+
+.recharts-line-dots .recharts-dot:hover {
+  r: 6;
+  filter: drop-shadow(0 0 12px currentColor);
+  cursor: pointer;
+}
+
+/* Tooltip - Modern Glassmorphism */
+.recharts-tooltip-wrapper {
+  z-index: 100 !important;
+}
+
+.recharts-default-tooltip {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  padding: 12px 16px !important;
+}
+
+[data-theme="dark"] .recharts-default-tooltip {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Responsive Motion */
@@ -72,17 +88,9 @@
   .recharts-bar-rectangle,
   .recharts-pie-sector,
   .recharts-line-curve,
-  .recharts-line-dots .recharts-dot,
-  .recharts-legend-item {
+  .recharts-line-dots .recharts-dot {
     transition: none !important;
+    filter: none !important;
   }
 }
 
-/* Dark Mode */
-[data-theme="dark"] .recharts-wrapper {
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
-}
-
-[data-theme="dark"] .card:hover .recharts-wrapper {
-  filter: drop-shadow(0 2px 6px rgba(93, 204, 180, 0.15));
-}

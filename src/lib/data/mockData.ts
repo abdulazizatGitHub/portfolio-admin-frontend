@@ -14,6 +14,51 @@ import type {
 // Simulate API delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Default Fallback Content
+export const DEFAULT_ABOUT_SECTION: AboutSection = {
+  id: 0,
+  roleTitle: 'Software Architect',
+  paragraphs: [
+    'I am a results-driven professional with a strong background in building scalable web applications and distributed systems.',
+    'I focus on writing clean, maintainable code and providing exceptional user experiences through modern technology.',
+  ],
+  stats: [
+    { label: 'Experience', value: '5+ Years' },
+    { label: 'Projects', value: '25+' },
+    { label: 'Rating', value: '5.0' },
+  ],
+  orderIndex: 0,
+};
+
+export const DEFAULT_EDUCATION: EducationEntry = {
+  id: 0,
+  period: '2018 - 2022',
+  title: 'Bachelor of Science in Computer Science',
+  description: 'Specialized in Software Engineering and Artificial Intelligence. Graduated with honors and received multiple academic awards.',
+  orderIndex: 0,
+};
+
+export const DEFAULT_EXPERIENCE: ExperienceEntry = {
+  id: 0,
+  organization: 'Tech Innovations Corp',
+  location: 'Remote',
+  employmentType: 'full_time',
+  summary: 'Driving digital transformation and leading the development of high-performance cloud applications.',
+  overallPeriod: 'Jan 2022 – Present',
+  roles: [
+    {
+      id: 'default-role-0',
+      jobTitle: 'Senior Full Stack Developer',
+      startDate: '2022-01',
+      endDate: null,
+      isCurrent: true,
+      description: 'Architecting and implementing mission-critical features using React and Node.js. Optimizing system performance and mentoring junior developers.',
+      orderIndex: 0,
+    }
+  ],
+  orderIndex: 0,
+};
+
 export const mockPersonalProfiles: PersonalProfile[] = [
   {
     id: 1,
@@ -144,7 +189,7 @@ export const mockAboutSections: AboutSection[] = [
 ];
 
 // Legacy support - return first section
-export const mockAboutContent: AboutContent = mockAboutSections[0];
+export const mockAboutContent: AboutContent = mockAboutSections[0] || DEFAULT_ABOUT_SECTION;
 
 export const mockEducation: EducationEntry[] = [
   {
@@ -799,17 +844,17 @@ export const fetchAboutContent = async (): Promise<AboutContent> => {
 
 export const fetchAboutSections = async (): Promise<AboutSection[]> => {
   await delay(500);
-  return mockAboutSections;
+  return mockAboutSections.length > 0 ? mockAboutSections : [DEFAULT_ABOUT_SECTION];
 };
 
 export const fetchEducation = async (): Promise<EducationEntry[]> => {
   await delay(500);
-  return mockEducation;
+  return mockEducation.length > 0 ? mockEducation : [DEFAULT_EDUCATION];
 };
 
 export const fetchExperience = async (): Promise<ExperienceEntry[]> => {
   await delay(500);
-  return mockExperience;
+  return mockExperience.length > 0 ? mockExperience : [DEFAULT_EXPERIENCE];
 };
 
 export const fetchSkills = async (): Promise<Skill[]> => {
@@ -944,17 +989,17 @@ export const fetchActivities = async () => {
 const generateVisitTrend = () => {
   const data = [];
   const today = new Date();
-  
+
   for (let i = 29; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
-    
+
     // Simulate realistic traffic patterns (higher on weekdays)
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const baseVisits = isWeekend ? 80 : 150;
     const randomVariation = Math.floor(Math.random() * 50);
     const visits = baseVisits + randomVariation;
-    
+
     data.push({
       date: date.toISOString().split('T')[0],
       visits: visits,
@@ -962,7 +1007,7 @@ const generateVisitTrend = () => {
       pageViews: Math.floor(visits * 2.5),
     });
   }
-  
+
   return data;
 };
 

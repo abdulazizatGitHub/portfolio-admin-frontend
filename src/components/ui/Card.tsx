@@ -7,6 +7,7 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  hover?: boolean;
 }
 
 interface CardHeaderProps {
@@ -28,12 +29,13 @@ export function Card({
   children,
   className = '',
   onClick,
+  hover = false,
 }: CardProps) {
   return (
     <div
       className={cn(
         'bg-[var(--bg-elevated)] border border-[var(--border-primary)] rounded-lg transition-colors',
-        onClick && 'cursor-pointer hover:border-[var(--accent-primary)]',
+        (onClick || hover) && 'cursor-pointer hover:border-[var(--accent-primary)]',
         className
       )}
       onClick={onClick}
