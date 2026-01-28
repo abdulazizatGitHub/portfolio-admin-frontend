@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { AlertCircle } from 'lucide-react';
 
@@ -18,7 +18,8 @@ export function Textarea({
   id,
   ...props
 }: TextareaProps) {
-  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const textareaId = id || generatedId;
 
   return (
     <div className="w-full">
