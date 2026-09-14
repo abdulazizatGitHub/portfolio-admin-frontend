@@ -17,7 +17,7 @@ export interface ExperienceRole {
 }
 
 export interface ExperienceEntry {
-  id?: number;
+  id?: string;
   organization: string; // Required
   location?: string; // Optional
   employmentType?: EmploymentType; // Optional
@@ -26,4 +26,3 @@ export interface ExperienceEntry {
   overallPeriod: string; // Auto-calculated from first role start to last role end
   orderIndex: number; // Order across all experiences
 }
-

@@ -1,10 +1,11 @@
 export interface AboutStat {
+  id?: string;
   label: string;
   value: string;
 }
 
 export interface AboutSection {
-  id?: number;
+  id?: string;
   roleTitle: string;
   paragraphs: string[];
   stats: AboutStat[];
@@ -15,4 +16,3 @@ export interface AboutSection {
 
 // Legacy support
 export type AboutContent = AboutSection;
-

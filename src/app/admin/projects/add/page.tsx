@@ -1,72 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { EnhancedProjectForm } from '@/components/sections/Projects/EnhancedProjectForm';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/lib/hooks/useToast';
-import { mockProjects } from '@/lib/data/mockData';
+import { useCreateProject } from '@/lib/hooks';
 import type { ProjectFormData } from '@/types/projects';
 
 export default function ProjectFormPage() {
   const router = useRouter();
-  const params = useParams();
-  const projectId = params?.id as string | undefined;
-  const isEditMode = !!projectId;
-
   const { success, error: showError } = useToast();
+  const createProject = useCreateProject();
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingProject, setIsLoadingProject] = useState(isEditMode);
-  const [currentProject, setCurrentProject] = useState<ProjectFormData | null>(null);
-
-  // Load project data when in edit mode
-  useEffect(() => {
-    if (isEditMode) {
-      setTimeout(() => {
-        const project = mockProjects.find(p => p.id?.toString() === projectId);
-        if (project) {
-          setCurrentProject({
-            title: project.title,
-            shortDescription: project.shortDescription,
-            description: project.description,
-            category: project.category,
-            techStack: project.techStack,
-            thumbnail: project.thumbnail,
-            liveUrl: project.liveUrl,
-            githubUrl: project.githubUrl,
-            status: project.status,
-            featured: project.featured,
-            isPublished: project.isPublished,
-            startDate: project.startDate,
-            endDate: project.endDate,
-          });
-          setIsLoadingProject(false);
-        } else {
-          showError('Project not found');
-          router.push('/admin/projects');
-        }
-      }, 500);
-    }
-  }, [isEditMode, projectId, showError, router]);
 
   const handleSubmit = async (data: ProjectFormData) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      if (isEditMode) {
-        console.log('Updating project:', projectId, data);
-        success('Project updated successfully');
-      } else {
-        console.log('Creating project:', data);
-        success('Project created successfully');
-      }
-
+      await createProject.mutateAsync(data);
+      success('Project created successfully');
       router.push('/admin/projects');
     } catch (err) {
-      showError(`Failed to ${isEditMode ? 'update' : 'create'} project. Please try again.`);
+      showError('Failed to create project. Please try again.');
       setIsLoading(false);
     }
   };
@@ -75,28 +30,16 @@ export default function ProjectFormPage() {
     router.push('/admin/projects');
   };
 
-  if (isLoadingProject) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title={isEditMode ? 'Edit Project' : 'New Project'}
-        description={
-          isEditMode
-            ? 'Update your project details and settings'
-            : 'Create a new project to showcase your work'
-        }
+        title="New Project"
+        description="Create a new project to showcase your work"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Projects', href: '/admin/projects' },
-          { label: isEditMode ? 'Edit Project' : 'New Project' },
+          { label: 'New Project' },
         ]}
       />
 
@@ -105,7 +48,6 @@ export default function ProjectFormPage() {
         <div className="w-full max-w-[1000px]">
           <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
             <EnhancedProjectForm
-              initialData={currentProject || undefined}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               isLoading={isLoading}

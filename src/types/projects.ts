@@ -1,5 +1,5 @@
 export interface Project {
-  id?: number;
+  id?: string;
   title: string;
   shortDescription: string;
   description: string;
@@ -37,5 +37,3 @@ export interface ProjectFormData {
   endDate: string | null;
   isPublished: boolean;
 }
-
-

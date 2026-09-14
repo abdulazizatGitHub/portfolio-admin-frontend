@@ -36,9 +36,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export function TechStackChart({ data }: TechStackChartProps) {
-  const chartData = [...data]
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+  const chartData = [...data].sort((a, b) => b.count - a.count).slice(0, 6);
 
   return (
     <div className="card">
@@ -56,7 +54,14 @@ export function TechStackChart({ data }: TechStackChartProps) {
           >
             <defs>
               {chartData.map((entry, index) => (
-                <linearGradient key={`gradient-${index}`} id={`barGradient-${index}`} x1="0" y1="0" x2="1" y2="0">
+                <linearGradient
+                  key={`gradient-${index}`}
+                  id={`barGradient-${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="0"
+                >
                   <stop offset="0%" stopColor={entry.color} stopOpacity={0.6} />
                   <stop offset="100%" stopColor={entry.color} stopOpacity={1} />
                 </linearGradient>
@@ -83,7 +88,7 @@ export function TechStackChart({ data }: TechStackChartProps) {
                 <Cell
                   key={`cell-${index}`}
                   fill={`url(#barGradient-${index})`}
-                  style={{ filter: `drop-shadow(0 0 4px ${entry.color}40)` }}
+                  style={{ filter: `drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2))` }}
                 />
               ))}
             </Bar>
@@ -93,5 +98,3 @@ export function TechStackChart({ data }: TechStackChartProps) {
     </div>
   );
 }
-
-

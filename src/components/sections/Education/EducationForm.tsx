@@ -2,21 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Formik, Form, useFormikContext } from 'formik';
-import { motion } from 'framer-motion';
-import { GraduationCap, Calendar, FileText, Save, X, BookOpen, Clock, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, Calendar, FileText, Save, X, Building } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { educationSchema } from '@/lib/validations/schemas';
 import type { EducationEntry } from '@/types';
 import { cn } from '@/lib/utils/cn';
-
-const sectionVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
-  }
-};
 
 /**
  * Helper component to sync the hidden period field with the date inputs
@@ -25,7 +15,7 @@ function PeriodSyncer({
   startYear,
   endYear,
   isPresent,
-  generatePeriod
+  generatePeriod,
 }: {
   startYear: string;
   endYear: string;
@@ -55,6 +45,7 @@ export function EducationForm({
   onCancel,
   isLoading = false,
 }: EducationFormProps) {
+  const isEdit = !!initialData?.id;
   const [startYear, setStartYear] = useState('');
   const [endYear, setEndYear] = useState('');
   const [isPresent, setIsPresent] = useState(false);
@@ -96,7 +87,20 @@ export function EducationForm({
     const formatDate = (dateStr: string) => {
       if (!dateStr) return '';
       const [year, month] = dateStr.split('-');
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthNames = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
       const monthIndex = parseInt(month, 10) - 1;
       return `${monthNames[monthIndex]} ${year}`;
     };
@@ -133,200 +137,191 @@ export function EducationForm({
       onSubmit={handleSubmit}
       enableReinitialize
     >
-      {({ isSubmitting, errors, values, setFieldValue }) => {
-        return (
-          <Form className="max-w-4xl mx-auto space-y-10 pb-20">
-            <PeriodSyncer
-              startYear={startYear}
-              endYear={endYear}
-              isPresent={isPresent}
-              generatePeriod={generatePeriod}
-            />
+      {({ isSubmitting, errors, values, setFieldValue }) => (
+        <Form className="space-y-6">
+          <PeriodSyncer
+            startYear={startYear}
+            endYear={endYear}
+            isPresent={isPresent}
+            generatePeriod={generatePeriod}
+          />
 
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                visible: {
-                  transition: {
-                    staggerChildren: 0.1
-                  }
-                }
-              }}
-              className="space-y-10"
-            >
-              {/* Academic Identity */}
-              <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--primary-500)] to-transparent"></div>
+          {/* Degree Title Section */}
+          <section className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-[var(--primary-500)]/10 text-[var(--primary-500)] flex items-center justify-center">
+                <GraduationCap size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                  Degree / Certificate
+                </h3>
+                <p className="text-sm text-[var(--text-tertiary)]">
+                  Your qualification title and institution
+                </p>
+              </div>
+            </div>
 
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 rounded-2xl bg-[var(--primary-500)]/10 text-[var(--primary-500)]">
-                    <GraduationCap size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Education Details</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Degree and institution details</p>
-                  </div>
-                </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)]">
+                Degree Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                name="title"
+                type="text"
+                value={values.title}
+                onChange={(e) => setFieldValue('title', e.target.value)}
+                placeholder="e.g. Bachelor of Science in Computer Science"
+                className={cn(
+                  'w-full px-4 py-4 rounded-lg border bg-[var(--bg-base)] text-[var(--text-primary)] text-base transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]/20',
+                  errors.title
+                    ? 'border-red-500'
+                    : 'border-[var(--border-subtle)] focus:border-[var(--primary-500)]'
+                )}
+              />
+              {errors.title && <p className="text-sm text-red-500 mt-1">{errors.title}</p>}
+            </div>
+          </section>
 
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                    Degree Title <span className="text-[var(--error-500)]">*</span>
-                  </label>
-                  <div className="relative group/input">
-                    <BookOpen size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] group-focus-within/input:text-[var(--primary-500)] transition-colors" />
-                    <input
-                      name="title"
-                      type="text"
-                      value={values.title}
-                      onChange={(e) => setFieldValue('title', e.target.value)}
-                      placeholder="e.g., Bachelor of Science in Computer Science"
-                      className={cn(
-                        "w-full pl-12 pr-5 py-4 rounded-2xl border transition-all premium-input text-sm",
-                        errors.title ? "border-[var(--error-500)]" : "border-[var(--border-subtle)] focus:border-[var(--primary-500)]"
-                      )}
-                    />
-                  </div>
-                  {errors.title && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.title}</p>}
-                </div>
-              </motion.section>
+          {/* Date Range Section */}
+          <section className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center">
+                <Calendar size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Duration</h3>
+                <p className="text-sm text-[var(--text-tertiary)]">
+                  When did you study this program?
+                </p>
+              </div>
+            </div>
 
-              {/* Temporal Spectrum */}
-              <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--warning-500)] to-transparent"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)]">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="month"
+                  value={startYear}
+                  onChange={(e) => setStartYear(e.target.value)}
+                  className="w-full px-4 py-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-base)] text-[var(--text-primary)] text-base focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]/20 transition-colors"
+                />
+              </div>
 
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 rounded-2xl bg-[var(--warning-500)]/10 text-[var(--warning-500)]">
-                    <Calendar size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Date Range</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">When did you start and finish?</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                      Start Date <span className="text-[var(--error-500)]">*</span>
-                    </label>
-                    <div className="relative group/input">
-                      <Clock size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] group-focus-within/input:text-[var(--warning-500)] transition-colors" />
-                      <input
-                        type="month"
-                        value={startYear}
-                        onChange={(e) => setStartYear(e.target.value)}
-                        className="w-full pl-12 pr-5 py-4 rounded-2xl border border-[var(--border-subtle)] transition-all premium-input focus:border-[var(--warning-500)] text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                      End Date {!isPresent && <span className="text-[var(--error-500)]">*</span>}
-                    </label>
-                    <div className="relative group/input">
-                      <CheckCircle2 size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] group-focus-within/input:text-[var(--warning-500)] transition-colors" />
-                      <input
-                        type="month"
-                        value={endYear}
-                        disabled={isPresent}
-                        onChange={(e) => setEndYear(e.target.value)}
-                        className={cn(
-                          "w-full pl-12 pr-5 py-4 rounded-2xl border border-[var(--border-subtle)] transition-all premium-input focus:border-[var(--warning-500)] text-sm",
-                          isPresent && "opacity-50 grayscale cursor-not-allowed"
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex items-center justify-between p-5 rounded-3xl bg-[var(--warning-500)]/[0.03] border border-[var(--warning-500)]/10">
-                  <label className="flex items-center gap-4 cursor-pointer group/toggle">
-                    <input
-                      type="checkbox"
-                      checked={isPresent}
-                      onChange={(e) => {
-                        setIsPresent(e.target.checked);
-                        if (e.target.checked) setEndYear('');
-                      }}
-                      className="w-5 h-5 rounded-lg accent-[var(--warning-500)] cursor-pointer"
-                    />
-                    <div>
-                      <span className="block text-sm font-bold text-[var(--text-primary)] tracking-tight">Currently Studying</span>
-                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)]">I am currently enrolled in this program.</span>
-                    </div>
-                  </label>
-
-                  {startYear && (
-                    <div className="text-right">
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Generated Period</span>
-                      <span className="block text-sm font-bold text-[var(--warning-500)] tracking-tight">
-                        {generatePeriod(startYear, endYear, isPresent)}
-                      </span>
-                    </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)]">
+                  End Date {!isPresent && <span className="text-red-500">*</span>}
+                </label>
+                <input
+                  type="month"
+                  value={endYear}
+                  disabled={isPresent}
+                  onChange={(e) => setEndYear(e.target.value)}
+                  className={cn(
+                    'w-full px-4 py-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-base)] text-[var(--text-primary)] text-base focus:border-[var(--primary-500)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]/20 transition-colors',
+                    isPresent && 'opacity-50 cursor-not-allowed bg-[var(--bg-hover)]'
                   )}
+                />
+              </div>
+            </div>
+
+            {/* Currently Studying Toggle */}
+            <div className="mt-6 flex items-center justify-between p-4 rounded-lg bg-[var(--bg-hover)] border border-[var(--border-subtle)]">
+              <label className="flex items-center gap-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isPresent}
+                  onChange={(e) => {
+                    setIsPresent(e.target.checked);
+                    if (e.target.checked) setEndYear('');
+                  }}
+                  className="w-5 h-5 rounded accent-[var(--primary-500)]"
+                />
+                <div>
+                  <span className="block text-sm font-medium text-[var(--text-primary)]">
+                    Currently studying here
+                  </span>
+                  <span className="block text-xs text-[var(--text-tertiary)]">
+                    I&apos;m still enrolled in this program
+                  </span>
                 </div>
-              </motion.section>
+              </label>
 
-              {/* Scholastic Narrative */}
-              <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--success-500)] to-transparent"></div>
-
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="p-3 rounded-2xl bg-[var(--success-500)]/10 text-[var(--success-500)]">
-                    <FileText size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Description</h3>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Describe your studies and accomplishments</p>
-                  </div>
+              {startYear && (
+                <div className="text-right hidden sm:block">
+                  <span className="block text-xs text-[var(--text-tertiary)]">Period Preview</span>
+                  <span className="block text-sm font-semibold text-[var(--primary-500)]">
+                    {generatePeriod(startYear, endYear, isPresent)}
+                  </span>
                 </div>
+              )}
+            </div>
+          </section>
 
-                <div className="space-y-2">
-                  <textarea
-                    name="description"
-                    value={values.description}
-                    onChange={(e) => setFieldValue('description', e.target.value)}
-                    placeholder="Narrate your academic achievements and area of focus..."
-                    className={cn(
-                      "w-full px-5 py-4 rounded-[32px] border transition-all premium-input min-h-[160px] resize-none text-sm",
-                      errors.description ? "border-[var(--error-500)]" : "border-[var(--border-subtle)] focus:border-[var(--success-500)]"
-                    )}
-                    rows={5}
-                  />
-                  {errors.description && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.description}</p>}
-                </div>
-              </motion.section>
+          {/* Description Section */}
+          <section className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <FileText size={22} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--text-primary)]">Description</h3>
+                <p className="text-sm text-[var(--text-tertiary)]">
+                  Describe your studies, achievements, and focus area
+                </p>
+              </div>
+            </div>
 
-              {/* Form Actions */}
-              <motion.div
-                variants={sectionVariants}
-                className="flex items-center justify-between p-8 glass-panel rounded-[40px] border-t-4 border-t-[var(--primary-500)]"
-              >
-                <button
-                  type="button"
-                  onClick={onCancel}
-                  disabled={isSubmitting || isLoading}
-                  className="px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-all active:scale-95 flex items-center gap-2"
-                >
-                  <X size={14} />
-                  Cancel
-                </button>
-                <Button
-                  type="submit"
-                  loading={isSubmitting || isLoading}
-                  className="px-12 py-4 rounded-2xl shadow-xl shadow-[var(--primary-500)]/20 text-[11px] font-black uppercase tracking-widest active:scale-95 transition-all flex items-center gap-2 text-white"
-                  disabled={!startYear || (!endYear && !isPresent) || !values.title || !values.description}
-                >
-                  {!isSubmitting && !isLoading && <Save size={14} />}
-                  <span>{initialData?.id ? 'Save Changes' : 'Create Education'}</span>
-                </Button>
-              </motion.div>
-            </motion.div>
-          </Form>
-        );
-      }}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)]">
+                About this education
+              </label>
+              <textarea
+                name="description"
+                value={values.description}
+                onChange={(e) => setFieldValue('description', e.target.value)}
+                placeholder="Describe what you studied, key achievements, relevant coursework, or skills gained..."
+                className={cn(
+                  'w-full px-4 py-4 rounded-lg border bg-[var(--bg-base)] text-[var(--text-primary)] text-base transition-colors resize-none min-h-[160px] focus:outline-none focus:ring-2 focus:ring-[var(--primary-500)]/20',
+                  errors.description
+                    ? 'border-red-500'
+                    : 'border-[var(--border-subtle)] focus:border-[var(--primary-500)]'
+                )}
+                rows={5}
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+              )}
+            </div>
+          </section>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-end gap-4 pt-6 border-t border-[var(--border-subtle)]">
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={isSubmitting || isLoading}
+              className="px-6 py-3 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] transition-colors flex items-center gap-2"
+            >
+              <X size={18} />
+              Cancel
+            </button>
+            <Button
+              type="submit"
+              loading={isSubmitting || isLoading}
+              className="px-8 py-3 text-base flex items-center gap-2"
+              disabled={
+                !startYear || (!endYear && !isPresent) || !values.title || !values.description
+              }
+            >
+              {!isSubmitting && !isLoading && <Save size={18} />}
+              {isEdit ? 'Save Changes' : 'Add Education'}
+            </Button>
+          </div>
+        </Form>
+      )}
     </Formik>
   );
 }

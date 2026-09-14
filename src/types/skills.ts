@@ -1,5 +1,5 @@
 export interface Skill {
-  id?: number;
+  id?: string;
   name: string;
   level: number; // 0-100
   category: 'frontend' | 'backend' | 'database' | 'devops' | 'tools' | 'soft' | 'technical' | 'ai';
@@ -19,4 +19,3 @@ export interface SkillFormData {
   level: number;
   context?: string;
 }
-

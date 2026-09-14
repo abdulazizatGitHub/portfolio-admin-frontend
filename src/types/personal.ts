@@ -1,5 +1,5 @@
 export interface PersonalProfile {
-  id?: number;
+  id?: string;
   name: string;
   titlePrefix: string;
   description: string;
@@ -14,4 +14,3 @@ export interface PersonalProfile {
 
 // Legacy support
 export type PersonalContent = PersonalProfile;
-

@@ -1,7 +1,12 @@
 'use client';
 
-import './3d-charts.css';
-import { useEducation, useExperience, useProjects, useSkills } from '@/lib/hooks';
+import {
+  useEducation,
+  useExperience,
+  useProjects,
+  useSkills,
+  useDashboardStats,
+} from '@/lib/hooks';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
@@ -12,9 +17,8 @@ import {
   Users,
   Eye,
   MousePointerClick,
-  Download
+  Download,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { StatCard } from '@/components/sections/Dashboard/StatCard';
 import { TechStackChart } from '@/components/sections/Dashboard/TechStackChart';
 import { SkillsDistributionChart } from '@/components/sections/Dashboard/SkillsDistributionChart';
@@ -25,9 +29,8 @@ import { TopPagesCard } from '@/components/sections/Dashboard/TopPagesCard';
 import { DeviceBreakdownChart } from '@/components/sections/Dashboard/DeviceBreakdownChart';
 import { TrafficSourcesChart } from '@/components/sections/Dashboard/TrafficSourcesChart';
 import { PersonalOverviewCard } from '@/components/sections/Dashboard/PersonalOverviewCard';
-import { mockActivities, mockSparklineData, mockWebsiteAnalytics } from '@/lib/data/mockData';
 import { useRouter } from 'next/navigation';
-import type { Activity } from '@/types';
+import type { Activity, DeviceData, TopPageData } from '@/types';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -35,25 +38,18 @@ export default function DashboardPage() {
   const { data: skills, isLoading: skillsLoading } = useSkills();
   const { data: education, isLoading: educationLoading } = useEducation();
   const { data: experience, isLoading: experienceLoading } = useExperience();
+  const { data: stats, isLoading: statsLoading } = useDashboardStats();
 
-  const isLoading = projectsLoading || skillsLoading || educationLoading || experienceLoading;
-
-  // Website Analytics Data
-  const analytics = mockWebsiteAnalytics;
-
-  // Generate sparkline for website visits
-  const visitSparkline = analytics.visitTrend.slice(-7).map(d => d.visits);
-  const uniqueVisitorSparkline = analytics.visitTrend.slice(-7).map(d => d.uniqueVisitors);
-  const pageViewSparkline = analytics.visitTrend.slice(-7).map(d => d.pageViews);
-  const cvDownloadSparkline = [32, 35, 38, 41, 43, 45, 47];
+  const isLoading =
+    projectsLoading || skillsLoading || educationLoading || experienceLoading || statsLoading;
 
   // Calculate tech stack distribution
   const getTechStackData = () => {
     if (!projects) return [];
 
     const techCount: Record<string, number> = {};
-    projects.forEach(project => {
-      project.techStack?.forEach(tech => {
+    projects.forEach((project) => {
+      project.techStack?.forEach((tech) => {
         techCount[tech] = (techCount[tech] || 0) + 1;
       });
     });
@@ -61,7 +57,7 @@ export default function DashboardPage() {
     return Object.entries(techCount).map(([name, count], index) => ({
       name,
       count,
-      color: getChartColor(index)
+      color: getChartColor(index),
     }));
   };
 
@@ -77,10 +73,10 @@ export default function DashboardPage() {
       tools: 0,
       soft: 0,
       technical: 0,
-      ai: 0
+      ai: 0,
     };
 
-    skills.forEach(skill => {
+    skills.forEach((skill) => {
       if (skill.category in categoryCount) {
         categoryCount[skill.category]++;
       }
@@ -93,18 +89,18 @@ export default function DashboardPage() {
         category: category.charAt(0).toUpperCase() + category.slice(1),
         count,
         percentage: total > 0 ? Math.round((count / total) * 100) : 0,
-        color: getChartColor(index)
+        color: getChartColor(index),
       }));
   };
 
   function getChartColor(index: number): string {
     const colors = [
       'var(--chart-1)',
-      '#6366F1', // Indigo
-      '#8B5CF6', // Violet
-      '#EC4899', // Pink
-      '#F59E0B', // Amber
-      '#10B981', // Emerald
+      'var(--chart-2)',
+      'var(--chart-3)',
+      'var(--chart-4)',
+      'var(--chart-5)',
+      'var(--chart-6)',
     ];
     return colors[index % colors.length];
   }
@@ -113,20 +109,16 @@ export default function DashboardPage() {
     if (data.length < 14) return 0;
     const recent = data.slice(-7).reduce((a, b) => a + b, 0);
     const previous = data.slice(-14, -7).reduce((a, b) => a + b, 0);
-    if (previous === 0) return 3.2; // Default positive trend for mock
+    if (previous === 0) return 0;
     return Number((((recent - previous) / previous) * 100).toFixed(1));
   };
 
-  const visitsChange = calculateChange(analytics.visitTrend.map(d => d.visits));
-  const visitorsChange = calculateChange(analytics.visitTrend.map(d => d.uniqueVisitors));
-  const pageViewsChange = calculateChange(analytics.visitTrend.map(d => d.pageViews));
-
-  const handleNewProject = () => router.push('/admin/projects?add=true');
-  const handleNewSkill = () => router.push('/admin/skills?add=true');
-  const handleNewEducation = () => router.push('/admin/education/add');
+  const handleNewProject = () => router.push('/admin/projects/add');
+  const handleNewSkill = () => router.push('/admin/skills/add');
+  const handleNewEducation = () => router.push('/admin/education/form');
   const handleNewExperience = () => router.push('/admin/experience/add');
 
-  if (isLoading) {
+  if (isLoading || !stats) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <LoadingSpinner size="lg" variant="default" />
@@ -137,170 +129,178 @@ export default function DashboardPage() {
   const techStackData = getTechStackData();
   const skillsDistribution = getSkillsDistribution();
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+  const visitTrend = stats.visitTrend;
+  const visitSparkline = visitTrend.slice(-7).map((d) => d.visits);
+  const uniqueVisitorSparkline = visitTrend.slice(-7).map((d) => d.uniqueVisitors);
+  const pageViewSparkline = visitTrend.slice(-7).map((d) => d.pageViews);
+
+  const visitsChange = calculateChange(visitTrend.map((d) => d.visits));
+  const visitorsChange = calculateChange(visitTrend.map((d) => d.uniqueVisitors));
+  const pageViewsChange = calculateChange(visitTrend.map((d) => d.pageViews));
+
+  const topPages: TopPageData[] = stats.deepInsights.topPages.map((p) => ({
+    page: p.path,
+    views: p.views,
+    averageTime: 0,
+  }));
+
+  const deviceTotal = stats.deepInsights.deviceBreakdown.reduce((sum, d) => sum + d.count, 0);
+  const deviceBreakdown: DeviceData[] = stats.deepInsights.deviceBreakdown.map((d) => ({
+    device: (d.device as DeviceData['device']) || 'desktop',
+    count: d.count,
+    percentage: deviceTotal > 0 ? Math.round((d.count / deviceTotal) * 100) : 0,
+  }));
+
+  const activityTypeMap: Record<string, Activity['type']> = {
+    CREATE: 'create',
+    UPDATE: 'update',
+    DELETE: 'delete',
+    PUBLISH: 'update',
+    UNPUBLISH: 'update',
   };
 
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  const recentActivities: Activity[] = stats.recentActivities.map((a) => ({
+    id: a.id,
+    type: activityTypeMap[a.action] || 'update',
+    entity: (a.entity_type as Activity['entity']) || 'project',
+    entityId: a.entity_id || '',
+    entityName: a.entity_name || '',
+    description: a.description,
+    timestamp: a.created_at,
+  }));
 
   return (
     <div className="relative">
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 dashboard-container max-w-[1600px] mx-auto px-6 py-8"
-      >
+      <div className="relative z-10 dashboard-container max-w-[1600px] mx-auto px-6 py-8">
         {/* Page Header */}
         <PageHeader
-          title="Command Center"
-          description="Your portfolio performance at a glance"
+          title="Dashboard"
+          description="View your website and portfolio stats"
           breadcrumbs={[{ label: 'Dashboard' }]}
         />
 
-        {/* Hero Section: Personal Identity */}
-        <motion.div variants={sectionVariants} className="mb-4">
+        {/* Hero Section: Personal Overview */}
+        <div className="mb-4">
           <PersonalOverviewCard />
-        </motion.div>
+        </div>
 
         {/* Section: Website Performance */}
-        <motion.div variants={sectionVariants} className="dashboard-section mt-8">
+        <div className="dashboard-section mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="section-title text-2xl">Growth Analytics</h2>
-            <div className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-widest bg-[var(--bg-surface)] px-3 py-1 rounded-full border border-[var(--border-subtle)] shadow-sm">
-              Realtime Data
+            <h2 className="section-title text-2xl">Website Analytics</h2>
+            <div className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide bg-[var(--bg-surface)] px-3 py-1 rounded-full border border-[var(--border-subtle)]">
+              Real-time
             </div>
           </div>
           <div className="stats-grid">
             <StatCard
               icon={MousePointerClick}
-              label="Total Engagement"
-              value={analytics.totalVisits}
+              label="Total Visits"
+              value={stats.growthAnalytics.totalVisits}
               change={visitsChange}
               changeLabel="increase"
               sparklineData={visitSparkline}
               color="var(--chart-1)"
-              delay={0.1}
             />
             <StatCard
               icon={Users}
-              label="Active Network"
-              value={analytics.uniqueVisitors}
+              label="Unique Visitors"
+              value={stats.growthAnalytics.uniqueVisitors}
               change={visitorsChange}
-              changeLabel="growth"
+              changeLabel="increase"
               sparklineData={uniqueVisitorSparkline}
               color="#6366F1"
-              delay={0.2}
             />
             <StatCard
               icon={Eye}
-              label="Presence Index"
-              value={analytics.pageViews}
+              label="Page Views"
+              value={stats.growthAnalytics.pageViews}
               change={pageViewsChange}
-              changeLabel="visibility"
+              changeLabel="increase"
               sparklineData={pageViewSparkline}
               color="#8B5CF6"
-              delay={0.3}
             />
             <StatCard
               icon={Download}
-              label="Interest Level"
-              value={analytics.cvDownloads}
-              change={15.2}
-              changeLabel="interest"
-              sparklineData={cvDownloadSparkline}
+              label="CV Downloads"
+              value={stats.growthAnalytics.cvDownloads}
+              change={0}
+              changeLabel="increase"
+              sparklineData={[]}
               color="#EC4899"
-              delay={0.4}
             />
           </div>
-        </motion.div>
+        </div>
 
         {/* Section: Main Analytics Chart */}
-        <motion.div variants={sectionVariants} className="dashboard-section">
-          <TrafficTrendChart data={analytics.visitTrend} />
-        </motion.div>
+        <div className="dashboard-section">
+          <TrafficTrendChart data={visitTrend} />
+        </div>
 
-        {/* Section: Portfolio Stats (Second Row Mini Stats) */}
-        <motion.div variants={sectionVariants} className="dashboard-section">
-          <h2 className="section-title">Content Velocity</h2>
+        {/* Section: Portfolio Stats */}
+        <div className="dashboard-section">
+          <h2 className="section-title">Portfolio Overview</h2>
           <div className="stats-grid">
             <StatCard
               icon={FolderOpen}
-              label="Innovations"
+              label="Projects"
               value={projects?.length || 0}
-              change={12.5}
-              sparklineData={mockSparklineData.projects}
+              sparklineData={[]}
               color="var(--primary-500)"
-              delay={0.5}
             />
             <StatCard
               icon={Briefcase}
-              label="Capabilities"
+              label="Skills"
               value={skills?.length || 0}
-              change={8.3}
-              sparklineData={mockSparklineData.skills}
+              sparklineData={[]}
               color="var(--secondary-500)"
-              delay={0.6}
             />
             <StatCard
               icon={Award}
-              label="Professional Milestones"
+              label="Experience"
               value={experience?.length || 0}
-              sparklineData={mockSparklineData.experience}
+              sparklineData={[]}
               color="var(--warning-500)"
-              delay={0.7}
             />
             <StatCard
               icon={GraduationCap}
-              label="Academic Assets"
+              label="Education"
               value={education?.length || 0}
-              sparklineData={mockSparklineData.education}
+              sparklineData={[]}
               color="var(--success-500)"
-              delay={0.8}
             />
           </div>
-        </motion.div>
+        </div>
 
-        {/* Section: Qualitative Insights */}
-        <motion.div variants={sectionVariants} className="dashboard-section">
-          <h2 className="section-title">Deep Insights</h2>
+        {/* Section: Distribution */}
+        <div className="dashboard-section">
+          <h2 className="section-title">Distribution Breakdown</h2>
           <div className="charts-grid">
             <TechStackChart data={techStackData} />
             <SkillsDistributionChart data={skillsDistribution} />
           </div>
-        </motion.div>
+        </div>
 
         {/* Section: Traffic Sources & Device Distribution */}
-        <motion.div variants={sectionVariants} className="dashboard-section">
+        <div className="dashboard-section">
           <div className="charts-grid">
-            <TrafficSourcesChart data={analytics.trafficSources} />
-            <DeviceBreakdownChart data={analytics.deviceBreakdown} />
+            <TrafficSourcesChart data={stats.deepInsights.trafficSources} />
+            <DeviceBreakdownChart data={deviceBreakdown} />
           </div>
-        </motion.div>
+        </div>
 
         {/* Section: Activity & Actions */}
-        <motion.div variants={sectionVariants} className="bottom-grid-3">
-          <TopPagesCard pages={analytics.topPages} />
-          <RecentActivityList
-            activities={mockActivities as Activity[]}
-            maxItems={5}
-          />
+        <div className="bottom-grid-3">
+          <TopPagesCard pages={topPages} />
+          <RecentActivityList activities={recentActivities} maxItems={5} />
           <QuickActionsPanel
             onNewProject={handleNewProject}
             onNewSkill={handleNewSkill}
             onNewEducation={handleNewEducation}
             onNewExperience={handleNewExperience}
           />
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
-

@@ -1,146 +1,145 @@
 'use client';
 
 import React from 'react';
-import { Edit, Trash2, User, Sparkles, MessageSquare, PieChart, Layers, Zap } from 'lucide-react';
+import { Edit, Trash2, User, BarChart3, ChevronDown } from 'lucide-react';
 import type { AboutSection } from '@/types/about';
 import { cn } from '@/lib/utils/cn';
-import { motion } from 'framer-motion';
 
 interface AboutCardProps {
-    section: AboutSection;
-    onEdit: (section: AboutSection) => void;
-    onDelete: (section: AboutSection) => void;
-    isPrimary?: boolean;
+  section: AboutSection;
+  onEdit: (section: AboutSection) => void;
+  onDelete: (section: AboutSection) => void;
+  isPrimary?: boolean;
+  isExpanded?: boolean;
+  onToggle?: () => void;
 }
 
 /**
- * AboutCard - Premium visual card showing bio sections and metrics
+ * AboutCard - Expandable card for displaying bio sections
  */
-export function AboutCard({ section, onEdit, onDelete, isPrimary = false }: AboutCardProps) {
-    return (
-        <motion.div
-            whileHover={{ y: -5 }}
+export function AboutCard({
+  section,
+  onEdit,
+  onDelete,
+  isPrimary = false,
+  isExpanded = false,
+  onToggle,
+}: AboutCardProps) {
+  return (
+    <div
+      className={cn(
+        'bg-[var(--bg-surface)] border rounded-xl overflow-hidden transition-colors',
+        isPrimary ? 'border-[var(--primary-500)]' : 'border-[var(--border-subtle)]'
+      )}
+    >
+      {/* Header - Always Visible */}
+      <div
+        className="flex items-center justify-between gap-4 p-4 cursor-pointer hover:bg-[var(--bg-hover)] transition-colors"
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div
             className={cn(
-                'card p-8 md:p-10 relative overflow-hidden group',
-                isPrimary && 'ring-2 ring-[var(--primary-500)]/30 shadow-[0_0_30px_rgba(var(--primary-500-rgb),0.1)]'
+              'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0',
+              isPrimary
+                ? 'bg-[var(--primary-500)] text-white'
+                : 'bg-[var(--bg-hover)] text-[var(--text-secondary)]'
             )}
-        >
-            {/* Background Narrative Mesh */}
-            {isPrimary && (
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-500)]/5 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          >
+            <User size={20} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-[var(--text-primary)] truncate">
+                {section.roleTitle}
+              </h3>
+              {isPrimary && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded bg-[var(--primary-500)]/10 text-[var(--primary-500)] flex-shrink-0">
+                  Main
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-[var(--text-tertiary)]">
+              Section {section.orderIndex}
+            </span>
+          </div>
+        </div>
+
+        {/* Actions + Chevron */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(section);
+            }}
+            className="p-2 rounded-lg bg-[var(--bg-hover)] text-[var(--text-secondary)] hover:bg-[var(--primary-500)] hover:text-white transition-colors"
+            aria-label={`Edit ${section.roleTitle}`}
+          >
+            <Edit size={16} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(section);
+            }}
+            className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+            aria-label={`Delete ${section.roleTitle}`}
+          >
+            <Trash2 size={16} />
+          </button>
+          <ChevronDown
+            size={20}
+            className={cn(
+              'text-[var(--text-tertiary)] transition-transform ml-2',
+              isExpanded && 'rotate-180'
             )}
+          />
+        </div>
+      </div>
 
-            {/* Section Header */}
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 relative z-10">
-                <div className="flex items-start gap-5">
-                    {/* Identity Icon */}
-                    <div className={cn(
-                        "w-16 h-16 rounded-[28px] flex items-center justify-center transition-all duration-500 relative overflow-hidden shadow-2xl",
-                        isPrimary
-                            ? "bg-gradient-to-br from-[var(--primary-500)] to-[var(--accent-500)] text-white"
-                            : "bg-white/5 text-[var(--text-tertiary)] group-hover:bg-white/10 group-hover:text-[var(--text-secondary)]"
-                    )}>
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <User size={32} />
-                    </div>
-
-                    <div>
-                        <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-                            <h3 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight uppercase">
-                                {section.roleTitle}
-                            </h3>
-                            {isPrimary && (
-                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--primary-500)]/10 border border-[var(--primary-500)]/30 text-[var(--primary-500)]">
-                                    <Sparkles size={10} />
-                                    <span className="text-[9px] font-bold uppercase tracking-widest">Main Profile</span>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-[0.2em]">
-                            <Layers size={12} className="text-[var(--primary-500)]" />
-                            <span>Section Index: {section.orderIndex}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => onEdit(section)}
-                        className="p-3.5 rounded-2xl bg-white/5 border border-white/5 text-[var(--text-tertiary)] hover:bg-[var(--primary-500)] hover:text-white hover:border-transparent transition-all duration-300 active:scale-95 group/btn"
-                        aria-label={`Edit ${section.roleTitle}`}
-                    >
-                        <Edit size={18} className="group-hover/btn:scale-110" />
-                    </button>
-                    <button
-                        onClick={() => onDelete(section)}
-                        className="p-3.5 rounded-2xl bg-rose-500/5 border border-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-transparent transition-all duration-300 active:scale-95 group/btn"
-                        aria-label={`Delete ${section.roleTitle}`}
-                    >
-                        <Trash2 size={18} className="group-hover/btn:rotate-12" />
-                    </button>
-                </div>
+      {/* Expandable Content */}
+      {isExpanded && (
+        <div className="px-4 pb-4 border-t border-[var(--border-subtle)]">
+          {/* Bio Content */}
+          <div className="pt-4 space-y-3">
+            <h4 className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide">
+              Bio
+            </h4>
+            <div className="space-y-2">
+              {section.paragraphs.map((para, idx) => (
+                <p
+                  key={idx}
+                  className="text-sm text-[var(--text-secondary)] leading-relaxed p-3 bg-[var(--bg-hover)] rounded-lg"
+                >
+                  {para}
+                </p>
+              ))}
             </div>
+          </div>
 
-            {/* Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10">
-                {/* Bio Paragraphs Stream */}
-                <div className="lg:col-span-12 space-y-6">
-                    <div className="flex items-center gap-3 px-1 mb-4">
-                        <MessageSquare size={14} className="text-[var(--primary-500)]" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Bio Content</span>
-                    </div>
-                    <div className="space-y-6">
-                        {section.paragraphs.map((para, idx) => (
-                            <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: -10 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="p-6 md:p-8 rounded-[32px] bg-white/[0.02] border border-white/5 hover:bg-white/[0.03] transition-colors relative group/para"
-                            >
-                                <div className="absolute -left-3 top-8 w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-[9px] font-bold text-[var(--text-tertiary)] shadow-xl opacity-0 group-hover/para:opacity-100 transition-opacity">
-                                    {idx + 1}
-                                </div>
-                                <p className="text-sm md:text-base font-medium text-[var(--text-secondary)] leading-relaxed">
-                                    {para}
-                                </p>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Insight Metrics Grid */}
-                {section.stats && section.stats.length > 0 && (
-                    <div className="lg:col-span-12 pt-6">
-                        <div className="flex items-center gap-3 px-1 mb-6">
-                            <PieChart size={14} className="text-[var(--accent-500)]" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">Key Stats</span>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {section.stats.map((stat, idx) => (
-                                <motion.div
-                                    key={idx}
-                                    whileHover={{ y: -5, scale: 1.02 }}
-                                    className="p-6 rounded-[28px] bg-white/[0.03] border border-white/5 flex flex-col items-center text-center space-y-2 group/stat"
-                                >
-                                    <span className="text-2xl font-bold text-[var(--accent-500)] tracking-tighter transition-transform">
-                                        {stat.value}
-                                    </span>
-                                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-tertiary)]">
-                                        {stat.label}
-                                    </span>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+          {/* Stats */}
+          {section.stats && section.stats.length > 0 && (
+            <div className="pt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 size={14} className="text-[var(--text-tertiary)]" />
+                <h4 className="text-xs font-medium text-[var(--text-tertiary)] uppercase tracking-wide">
+                  Stats
+                </h4>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {section.stats.map((stat, idx) => (
+                  <div key={idx} className="p-3 bg-[var(--bg-hover)] rounded-lg text-center">
+                    <span className="block text-lg font-bold text-[var(--text-primary)]">
+                      {stat.value}
+                    </span>
+                    <span className="text-xs text-[var(--text-tertiary)]">{stat.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            {/* Gloss Reflection Overlay */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-
-            <Zap size={16} className="text-[var(--primary-500)] opacity-10" />
-        </motion.div>
-    );
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

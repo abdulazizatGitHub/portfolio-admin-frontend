@@ -3,15 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { ContactInfoForm } from '@/components/sections/Contact/ContactInfoForm';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useCreateContactInfo } from '@/lib/hooks';
+import { useToast } from '@/lib/hooks/useToast';
 import type { ContactInfoItem } from '@/types';
 
 export default function AddContactInfoPage() {
   const router = useRouter();
+  const createContactInfo = useCreateContactInfo();
+  const { error: showError } = useToast();
 
   const handleSubmit = async (data: ContactInfoItem) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Creating contact info:', data);
-    router.push('/admin/contact');
+    try {
+      await createContactInfo.mutateAsync(data);
+      router.push('/admin/contact');
+    } catch (err) {
+      showError('Failed to create contact info');
+    }
   };
 
   const handleCancel = () => {
@@ -22,9 +29,7 @@ export default function AddContactInfoPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Add Contact Information</h1>
-        <p className="mt-2 text-gray-600">
-          Add a new contact information entry
-        </p>
+        <p className="mt-2 text-gray-600">Add a new contact information entry</p>
       </div>
 
       <Card>
@@ -38,5 +43,3 @@ export default function AddContactInfoPage() {
     </div>
   );
 }
-
-

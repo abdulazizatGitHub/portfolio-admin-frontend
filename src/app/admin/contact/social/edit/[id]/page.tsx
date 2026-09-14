@@ -1,21 +1,28 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { useSocialLinks } from '@/lib/hooks';
+import { useSocialLinks, useUpdateSocialLink } from '@/lib/hooks';
 import { SocialLinkForm } from '@/components/sections/Contact/SocialLinkForm';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { useToast } from '@/lib/hooks/useToast';
 import type { SocialLink } from '@/types';
 
 export default function EditSocialLinkPage() {
   const router = useRouter();
   const params = useParams();
   const { data } = useSocialLinks();
-  const socialLink = data?.find((s) => s.id === Number(params.id));
+  const updateSocialLink = useUpdateSocialLink();
+  const { error: showError } = useToast();
+  const socialLink = data?.find((s) => s.id === params.id);
 
   const handleSubmit = async (data: SocialLink) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log('Updating social link:', data);
-    router.push('/admin/contact');
+    if (!socialLink?.id) return;
+    try {
+      await updateSocialLink.mutateAsync({ id: socialLink.id, data });
+      router.push('/admin/contact');
+    } catch (err) {
+      showError('Failed to update social link');
+    }
   };
 
   const handleCancel = () => {
@@ -36,9 +43,7 @@ export default function EditSocialLinkPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Edit Social Link</h1>
-        <p className="mt-2 text-gray-600">
-          Update social link information
-        </p>
+        <p className="mt-2 text-gray-600">Update social link information</p>
       </div>
 
       <Card>
@@ -56,5 +61,3 @@ export default function EditSocialLinkPage() {
     </div>
   );
 }
-
-

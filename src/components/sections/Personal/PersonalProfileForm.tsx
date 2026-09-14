@@ -22,8 +22,8 @@ const sectionVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
-  }
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+  },
 };
 
 export function PersonalProfileForm({
@@ -144,22 +144,18 @@ export function PersonalProfileForm({
         <div className="p-1.5 rounded-lg bg-[var(--bg-tertiary)] group-hover:bg-[var(--primary-500)]/10 group-hover:text-[var(--primary-500)] transition-colors">
           <ChevronLeft size={14} />
         </div>
-        Back to Identity Nexus
+        Back to Personal Profiles
       </motion.button>
 
       {/* Header Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-12"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
         <h1 className="text-4xl font-[900] text-[var(--text-primary)] tracking-tight mb-2">
-          {profile ? 'Refine Persona' : 'Initialize Identity'}
+          {profile ? 'Edit Profile' : 'New Profile'}
         </h1>
         <p className="text-sm font-medium text-[var(--text-secondary)]">
           {profile
-            ? 'Updating established professional metadata for current context.'
-            : 'Establishing a new digital representation in the global identity matrix.'}
+            ? 'Update your personal and professional profile details.'
+            : 'Add a new profile with your custom professional details.'}
         </p>
       </motion.div>
 
@@ -171,14 +167,17 @@ export function PersonalProfileForm({
           variants={{
             visible: {
               transition: {
-                staggerChildren: 0.1
-              }
-            }
+                staggerChildren: 0.1,
+              },
+            },
           }}
           className="space-y-10"
         >
-          {/* Identity Fundamentals */}
-          <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+          {/* Basic Information */}
+          <motion.section
+            variants={sectionVariants}
+            className="glass-panel p-8 rounded-[40px] relative overflow-hidden group"
+          >
             <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--primary-500)] to-transparent"></div>
 
             <div className="flex items-center gap-4 mb-8">
@@ -186,16 +185,23 @@ export function PersonalProfileForm({
                 <User size={24} />
               </div>
               <div>
-                <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Identity Fundamentals</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">Core personal descriptors</p>
+                <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">
+                  Basic Information
+                </h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">
+                  Name and intro details
+                </p>
               </div>
             </div>
 
             <div className="grid gap-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label htmlFor="name" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                    Full Designation <span className="text-[var(--error-500)]">*</span>
+                  <label
+                    htmlFor="name"
+                    className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1"
+                  >
+                    Full Name <span className="text-[var(--error-500)]">*</span>
                   </label>
                   <input
                     id="name"
@@ -203,17 +209,24 @@ export function PersonalProfileForm({
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
                     className={cn(
-                      "w-full px-5 py-3.5 rounded-2xl border transition-all premium-input",
-                      errors.name ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                      'w-full px-5 py-3.5 rounded-2xl border transition-all premium-input',
+                      errors.name ? 'border-[var(--error-500)]' : 'border-[var(--border-subtle)]'
                     )}
                     placeholder="e.g., Abdul Hannan"
                   />
-                  {errors.name && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.name}</p>}
+                  {errors.name && (
+                    <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">
+                      {errors.name}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="titlePrefix" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                    Introduction Hook <span className="text-[var(--error-500)]">*</span>
+                  <label
+                    htmlFor="titlePrefix"
+                    className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1"
+                  >
+                    Greeting / Tagline <span className="text-[var(--error-500)]">*</span>
                   </label>
                   <input
                     id="titlePrefix"
@@ -221,37 +234,55 @@ export function PersonalProfileForm({
                     value={formData.titlePrefix}
                     onChange={(e) => handleChange('titlePrefix', e.target.value)}
                     className={cn(
-                      "w-full px-5 py-3.5 rounded-2xl border transition-all premium-input",
-                      errors.titlePrefix ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                      'w-full px-5 py-3.5 rounded-2xl border transition-all premium-input',
+                      errors.titlePrefix
+                        ? 'border-[var(--error-500)]'
+                        : 'border-[var(--border-subtle)]'
                     )}
                     placeholder="Hi, I'm"
                   />
-                  {errors.titlePrefix && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.titlePrefix}</p>}
+                  {errors.titlePrefix && (
+                    <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">
+                      {errors.titlePrefix}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="description" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                  Professional Manifesto <span className="text-[var(--error-500)]">*</span>
+                <label
+                  htmlFor="description"
+                  className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1"
+                >
+                  Bio / Description <span className="text-[var(--error-500)]">*</span>
                 </label>
                 <textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   className={cn(
-                    "w-full px-5 py-4 rounded-3xl border transition-all premium-input min-h-[160px] resize-none",
-                    errors.description ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                    'w-full px-5 py-4 rounded-3xl border transition-all premium-input min-h-[160px] resize-none',
+                    errors.description
+                      ? 'border-[var(--error-500)]'
+                      : 'border-[var(--border-subtle)]'
                   )}
-                  placeholder="Envision your professional impact..."
+                  placeholder="Write a short bio about yourself..."
                   rows={6}
                 />
-                {errors.description && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.description}</p>}
+                {errors.description && (
+                  <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">
+                    {errors.description}
+                  </p>
+                )}
               </div>
             </div>
           </motion.section>
 
-          {/* Professional Trajectory */}
-          <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+          {/* Professional Roles */}
+          <motion.section
+            variants={sectionVariants}
+            className="glass-panel p-8 rounded-[40px] relative overflow-hidden group"
+          >
             <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--accent-500)] to-transparent"></div>
 
             <div className="flex items-center gap-4 mb-8">
@@ -259,8 +290,12 @@ export function PersonalProfileForm({
                 <Briefcase size={24} />
               </div>
               <div>
-                <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Professional Trajectory</h3>
-                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">Designated expertise roles</p>
+                <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">
+                  Professional Roles
+                </h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">
+                  Your main areas of expertise
+                </p>
               </div>
             </div>
 
@@ -270,13 +305,18 @@ export function PersonalProfileForm({
                 onChange={(roles) => handleChange('roles', roles)}
                 maxRoles={10}
               />
-              {errors.roles && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.roles}</p>}
+              {errors.roles && (
+                <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.roles}</p>
+              )}
             </div>
           </motion.section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {/* Credential Artifact */}
-            <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+            <motion.section
+              variants={sectionVariants}
+              className="glass-panel p-8 rounded-[40px] relative overflow-hidden group"
+            >
               <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--info-500)] to-transparent"></div>
 
               <div className="flex items-center gap-4 mb-8">
@@ -284,8 +324,12 @@ export function PersonalProfileForm({
                   <FileText size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Credential Artifact</h3>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">CV/Resume transmission</p>
+                  <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">
+                    Resume / CV
+                  </h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">
+                    Upload your current CV or Resume
+                  </p>
                 </div>
               </div>
 
@@ -295,12 +339,15 @@ export function PersonalProfileForm({
                 currentFile={currentFile}
                 onFileSelect={handleFileSelect}
                 onFileRemove={handleFileRemove}
-                label="Initialize PDF Transfer"
+                label="Choose PDF File"
               />
             </motion.section>
 
             {/* Distribution Metadata */}
-            <motion.section variants={sectionVariants} className="glass-panel p-8 rounded-[40px] relative overflow-hidden group">
+            <motion.section
+              variants={sectionVariants}
+              className="glass-panel p-8 rounded-[40px] relative overflow-hidden group"
+            >
               <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[var(--success-500)] to-transparent"></div>
 
               <div className="flex items-center gap-4 mb-8">
@@ -308,15 +355,22 @@ export function PersonalProfileForm({
                   <Download size={24} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">Access Control</h3>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">Distribution settings</p>
+                  <h3 className="text-xl font-[900] text-[var(--text-primary)] tracking-tight">
+                    Profile Settings
+                  </h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-tertiary)]">
+                    Visibility and download settings
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-8">
                 <div className="space-y-2">
-                  <label htmlFor="cvDownloadName" className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1">
-                    Download Designation <span className="text-[var(--error-500)]">*</span>
+                  <label
+                    htmlFor="cvDownloadName"
+                    className="text-[11px] font-black uppercase tracking-widest text-[var(--text-secondary)] ml-1"
+                  >
+                    Download Filename <span className="text-[var(--error-500)]">*</span>
                   </label>
                   <input
                     id="cvDownloadName"
@@ -324,15 +378,21 @@ export function PersonalProfileForm({
                     value={formData.cvDownloadName}
                     onChange={(e) => handleChange('cvDownloadName', e.target.value)}
                     className={cn(
-                      "w-full px-5 py-3.5 rounded-2xl border transition-all premium-input",
-                      errors.cvDownloadName ? "border-[var(--error-500)]" : "border-[var(--border-subtle)]"
+                      'w-full px-5 py-3.5 rounded-2xl border transition-all premium-input',
+                      errors.cvDownloadName
+                        ? 'border-[var(--error-500)]'
+                        : 'border-[var(--border-subtle)]'
                     )}
                     placeholder="e.g., Hannan_Resume_2024.pdf"
                   />
                   <p className="text-[10px] font-medium text-[var(--text-tertiary)] italic ml-1">
-                    Final filename upon external retrieval.
+                    Final filename upon retrieval.
                   </p>
-                  {errors.cvDownloadName && <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">{errors.cvDownloadName}</p>}
+                  {errors.cvDownloadName && (
+                    <p className="text-[10px] font-bold text-[var(--error-500)] ml-1">
+                      {errors.cvDownloadName}
+                    </p>
+                  )}
                 </div>
 
                 <div className="pt-4">
@@ -345,10 +405,16 @@ export function PersonalProfileForm({
                       className="w-5 h-5 rounded-lg accent-[var(--primary-500)] cursor-pointer"
                     />
                     <div className="flex-1">
-                      <span className="block text-sm font-[900] text-[var(--text-primary)] tracking-tight">Primary Identity Nexus</span>
-                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)]">Designated for global exposition.</span>
+                      <span className="block text-sm font-[900] text-[var(--text-primary)] tracking-tight">
+                        Main Profile
+                      </span>
+                      <span className="block text-[10px] font-medium text-[var(--text-tertiary)]">
+                        Make this the default profile shown on your portfolio.
+                      </span>
                     </div>
-                    {formData.isDefault && <Sparkles size={18} className="text-[var(--primary-500)] animate-pulse" />}
+                    {formData.isDefault && (
+                      <Sparkles size={18} className="text-[var(--primary-500)] animate-pulse" />
+                    )}
                   </label>
                 </div>
               </div>
@@ -367,7 +433,7 @@ export function PersonalProfileForm({
               disabled={isLoading}
             >
               <X size={14} />
-              Abort
+              Cancel
             </button>
             <Button
               type="submit"
@@ -378,12 +444,12 @@ export function PersonalProfileForm({
               {isLoading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                  <span>Syncing...</span>
+                  <span>Saving...</span>
                 </>
               ) : (
                 <>
                   <Save size={14} />
-                  <span>{profile ? 'Authorize Change' : 'Finalize Identity'}</span>
+                  <span>{profile ? 'Save Changes' : 'Create Profile'}</span>
                 </>
               )}
             </Button>
@@ -393,5 +459,3 @@ export function PersonalProfileForm({
     </div>
   );
 }
-
-

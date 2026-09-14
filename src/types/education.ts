@@ -1,8 +1,7 @@
 export interface EducationEntry {
-  id?: number;
+  id?: string;
   period: string;
   title: string;
   description: string;
   orderIndex: number;
 }
-

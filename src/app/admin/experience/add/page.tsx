@@ -5,18 +5,20 @@ import { useRouter } from 'next/navigation';
 import { ExperienceForm } from '@/components/sections/Experience/ExperienceForm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useToast } from '@/lib/hooks/useToast';
+import { useCreateExperience } from '@/lib/hooks';
 import type { ExperienceEntry } from '@/types';
 
 export default function AddExperiencePage() {
   const router = useRouter();
   const { success, error: showError } = useToast();
+  const createExperience = useCreateExperience();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (data: ExperienceEntry) => {
     setIsLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Creating experience entry:', data);
+      const { id, overallPeriod, ...payload } = data;
+      await createExperience.mutateAsync(payload);
       success('Experience entry created successfully');
       router.push('/admin/experience');
     } catch (err) {
@@ -46,11 +48,7 @@ export default function AddExperiencePage() {
       <div className="flex justify-center">
         <div className="w-full max-w-[1000px]">
           <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
-            <ExperienceForm
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-              isLoading={isLoading}
-            />
+            <ExperienceForm onSubmit={handleSubmit} onCancel={handleCancel} isLoading={isLoading} />
           </div>
         </div>
       </div>

@@ -20,7 +20,7 @@ export interface EnhancedTableProps<T> {
   className?: string;
 }
 
-export function EnhancedTable<T extends { id?: number }>({
+export function EnhancedTable<T extends { id?: string | number }>({
   data,
   columns,
   onRowClick,
@@ -36,7 +36,9 @@ export function EnhancedTable<T extends { id?: number }>({
   }
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden ${className}`}>
+    <div
+      className={`bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden ${className}`}
+    >
       <Table>
         <TableHeader>
           <TableRow>
@@ -66,4 +68,3 @@ export function EnhancedTable<T extends { id?: number }>({
     </div>
   );
 }
-

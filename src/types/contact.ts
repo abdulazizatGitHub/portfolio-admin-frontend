@@ -1,5 +1,5 @@
 export interface ContactInfoItem {
-  id?: number;
+  id?: string;
   type: 'email' | 'phone' | 'location';
   label: string;
   value: string;
@@ -8,9 +8,8 @@ export interface ContactInfoItem {
 }
 
 export interface SocialLink {
-  id?: number;
+  id?: string;
   platform: string;
   url: string;
   orderIndex: number;
 }
-

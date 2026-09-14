@@ -19,9 +19,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     const data = payload[0].payload;
     return (
       <div className="recharts-default-tooltip">
-        <p className="text-sm font-bold text-[var(--text-primary)] mb-1">
-          {data.category}
-        </p>
+        <p className="text-sm font-bold text-[var(--text-primary)] mb-1">{data.category}</p>
         <p className="text-xs font-medium text-[var(--text-secondary)]">
           {data.count} Skills ({data.percentage}%)
         </p>
@@ -46,7 +44,14 @@ export function SkillsDistributionChart({ data }: SkillsDistributionChartProps) 
           <PieChart>
             <defs>
               {data.map((entry, index) => (
-                <linearGradient key={`donutGradient-${index}`} id={`donutGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                <linearGradient
+                  key={`donutGradient-${index}`}
+                  id={`donutGradient-${index}`}
+                  x1="0"
+                  y1="0"
+                  x2="1"
+                  y2="1"
+                >
                   <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
                   <stop offset="100%" stopColor={entry.color} stopOpacity={0.6} />
                 </linearGradient>
@@ -76,8 +81,8 @@ export function SkillsDistributionChart({ data }: SkillsDistributionChartProps) 
                   fill={`url(#donutGradient-${index})`}
                   stroke="none"
                   style={{
-                    filter: `drop-shadow(0 4px 8px ${entry.color}30)`,
-                    outline: 'none'
+                    filter: `drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`,
+                    outline: 'none',
                   }}
                 />
               ))}
@@ -99,12 +104,14 @@ export function SkillsDistributionChart({ data }: SkillsDistributionChartProps) 
 
         {/* Center Label */}
         <div className="donut-center-label">
-          <div className="donut-center-value" style={{ color: 'var(--primary-500)' }}>{total}</div>
-          <div className="donut-center-text text-[10px] font-bold uppercase tracking-widest opacity-60">Total</div>
+          <div className="donut-center-value" style={{ color: 'var(--primary-500)' }}>
+            {total}
+          </div>
+          <div className="donut-center-text text-[10px] font-bold uppercase tracking-widest opacity-60">
+            Total
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-

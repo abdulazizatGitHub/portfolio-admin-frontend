@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils/cn';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 const pageTitles: Record<string, string> = {
   '/admin': 'Dashboard',
@@ -47,6 +48,7 @@ export function Topbar({ onCommandPaletteOpen }: { onCommandPaletteOpen?: () => 
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
   const currentTitle = pageTitles[pathname] || 'Admin Panel';
   const breadcrumbs = getBreadcrumbs(pathname);
 
@@ -89,13 +91,9 @@ export function Topbar({ onCommandPaletteOpen }: { onCommandPaletteOpen?: () => 
         <nav className="hidden md:flex items-center gap-2 text-sm">
           {breadcrumbs.map((crumb, index) => (
             <React.Fragment key={crumb.href}>
-              {index > 0 && (
-                <span className="text-[var(--text-tertiary)]">/</span>
-              )}
+              {index > 0 && <span className="text-[var(--text-tertiary)]">/</span>}
               {index === breadcrumbs.length - 1 ? (
-                <span className="font-semibold text-[var(--text-primary)]">
-                  {crumb.label}
-                </span>
+                <span className="font-semibold text-[var(--text-primary)]">{crumb.label}</span>
               ) : (
                 <button
                   onClick={() => router.push(crumb.href)}
@@ -109,9 +107,7 @@ export function Topbar({ onCommandPaletteOpen }: { onCommandPaletteOpen?: () => 
         </nav>
 
         {/* Page Title (Mobile) */}
-        <h2 className="text-xl font-bold md:hidden text-[var(--text-primary)]">
-          {currentTitle}
-        </h2>
+        <h2 className="text-xl font-bold md:hidden text-[var(--text-primary)]">{currentTitle}</h2>
       </div>
 
       {/* Right Section - Actions */}
@@ -166,30 +162,46 @@ export function Topbar({ onCommandPaletteOpen }: { onCommandPaletteOpen?: () => 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button
-                className="ml-2 h-8 w-8 rounded-full bg-[var(--accent-primary)] flex items-center justify-center text-white font-medium text-sm cursor-pointer"
+                className="ml-2 h-8 w-8 rounded-full bg-gradient-to-tr from-[var(--primary-500)] to-[var(--secondary-500)] flex items-center justify-center text-white font-bold text-xs cursor-pointer shadow-md hover:scale-105 transition-transform"
                 aria-label="User menu"
               >
-                <User className="w-4 h-4" />
+                {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}
               </button>
             </DropdownMenu.Trigger>
 
             <DropdownMenu.Portal>
               <DropdownMenu.Content
-                className="min-w-[200px] bg-[var(--bg-elevated)] rounded-lg shadow-lg border border-[var(--border-primary)] p-2 z-50"
-                sideOffset={5}
+                className="min-w-[240px] bg-[var(--bg-elevated)] rounded-xl shadow-2xl border border-[var(--border-primary)] p-2 z-50 animate-in fade-in zoom-in duration-200"
+                sideOffset={8}
+                align="end"
               >
-                <DropdownMenu.Item className="px-3 py-2 rounded-md hover:bg-[var(--bg-tertiary)] cursor-pointer outline-none flex items-center gap-2 text-sm text-[var(--text-primary)] transition-colors">
+                <div className="px-3 py-3 mb-2 border-b border-[var(--border-primary)]">
+                  <p className="text-sm font-bold text-[var(--text-primary)] truncate">
+                    {user?.name || 'Administrator'}
+                  </p>
+                  <p className="text-xs text-[var(--text-tertiary)] truncate">{user?.email}</p>
+                </div>
+                <DropdownMenu.Item
+                  onClick={() => router.push('/admin/personal')}
+                  className="px-3 py-2.5 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer outline-none flex items-center gap-3 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                >
                   <User className="w-4 h-4" />
-                  Profile
+                  Profile Settings
                 </DropdownMenu.Item>
-                <DropdownMenu.Item className="px-3 py-2 rounded-md hover:bg-[var(--bg-tertiary)] cursor-pointer outline-none flex items-center gap-2 text-sm text-[var(--text-primary)] transition-colors">
+                <DropdownMenu.Item
+                  onClick={() => router.push('/admin/settings')}
+                  className="px-3 py-2.5 rounded-lg hover:bg-[var(--bg-tertiary)] cursor-pointer outline-none flex items-center gap-3 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                >
                   <Settings className="w-4 h-4" />
-                  Settings
+                  Account Settings
                 </DropdownMenu.Item>
-                <DropdownMenu.Separator className="h-px bg-[var(--border-primary)] my-1" />
-                <DropdownMenu.Item className="px-3 py-2 rounded-md hover:bg-[var(--danger-bg)] cursor-pointer outline-none flex items-center gap-2 text-sm text-[var(--danger)] transition-colors">
+                <DropdownMenu.Separator className="h-px bg-[var(--border-primary)] my-1.5" />
+                <DropdownMenu.Item
+                  onClick={logout}
+                  className="px-3 py-2.5 rounded-lg hover:bg-red-500/10 cursor-pointer outline-none flex items-center gap-3 text-sm text-red-500 font-semibold transition-all"
+                >
                   <LogOut className="w-4 h-4" />
-                  Logout
+                  Sign Out
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
             </DropdownMenu.Portal>

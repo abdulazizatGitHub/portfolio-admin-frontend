@@ -1,11 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, ReactNode } from 'react';
-import { Toaster, toast } from 'sonner';
-import { CheckCircle2, XCircle, AlertTriangle, Info } from 'lucide-react';
+import { ToastContainer, toast, Slide } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface ToastContextType {
-  showToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info', duration?: number) => string | number;
+  showToast: (
+    message: string,
+    type?: 'success' | 'error' | 'warning' | 'info',
+    duration?: number
+  ) => string | number;
   success: (message: string, duration?: number) => string | number;
   error: (message: string, duration?: number) => string | number;
   warning: (message: string, duration?: number) => string | number;
@@ -16,31 +20,35 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback(
-    (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info', duration?: number) => {
-      const icons = {
-        success: <CheckCircle2 className="h-5 w-5" />,
-        error: <XCircle className="h-5 w-5" />,
-        warning: <AlertTriangle className="h-5 w-5" />,
-        info: <Info className="h-5 w-5" />,
-      };
+    (
+      message: string,
+      type: 'success' | 'error' | 'warning' | 'info' = 'info',
+      duration?: number
+    ) => {
+      const actualDuration = duration || (type === 'error' ? 6000 : 4000);
 
-      const toastOptions = {
-        duration: duration || (type === 'error' ? 6000 : 4000),
-        className: `toast-${type}`,
-        icon: icons[type],
+      const options = {
+        position: 'top-right' as const,
+        autoClose: actualDuration,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        transition: Slide,
+        theme: 'colored' as const,
       };
 
       switch (type) {
         case 'success':
-          return toast.success(message, toastOptions);
+          return toast.success(message, options);
         case 'error':
-          return toast.error(message, toastOptions);
+          return toast.error(message, options);
         case 'warning':
-          return toast.warning(message, toastOptions);
+          return toast.warning(message, options);
         case 'info':
-          return toast.info(message, toastOptions);
+          return toast.info(message, options);
         default:
-          return toast(message, toastOptions);
+          return toast(message, options);
       }
     },
     []
@@ -69,19 +77,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ showToast, success, error, warning, info }}>
       {children}
-      <Toaster
+      <ToastContainer
         position="top-right"
-        expand={true}
-        richColors
-        closeButton
-        toastOptions={{
-          classNames: {
-            success: 'gradient-success text-white',
-            error: 'gradient-danger text-white',
-            warning: 'gradient-warning text-white',
-            info: 'gradient-info text-white',
-          },
-        }}
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        className="premium-toastify"
       />
     </ToastContext.Provider>
   );
@@ -94,4 +101,3 @@ export function useToast() {
   }
   return context;
 }
-

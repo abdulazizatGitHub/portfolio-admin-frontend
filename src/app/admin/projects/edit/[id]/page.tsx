@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { EnhancedProjectForm } from '@/components/sections/Projects/EnhancedProjectForm';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useToast } from '@/lib/hooks/useToast';
-import { mockProjects } from '@/lib/data/mockData';
+import { useProject, useUpdateProject } from '@/lib/hooks';
 import type { ProjectFormData } from '@/types/projects';
 
 export default function EditProjectPage() {
@@ -15,44 +15,14 @@ export default function EditProjectPage() {
   const projectId = params?.id as string;
 
   const { success, error: showError } = useToast();
+  const { data: project, isLoading: isLoadingProject, isError } = useProject(projectId);
+  const updateProject = useUpdateProject();
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingProject, setIsLoadingProject] = useState(true);
-  const [currentProject, setCurrentProject] = useState<ProjectFormData | null>(null);
-
-  // Load project data
-  useEffect(() => {
-    setTimeout(() => {
-      const project = mockProjects.find(p => p.id?.toString() === projectId);
-      if (project) {
-        setCurrentProject({
-          title: project.title,
-          shortDescription: project.shortDescription,
-          description: project.description,
-          category: project.category,
-          techStack: project.techStack,
-          thumbnail: project.thumbnail,
-          liveUrl: project.liveUrl,
-          githubUrl: project.githubUrl,
-          status: project.status,
-          featured: project.featured,
-          isPublished: project.isPublished,
-          startDate: project.startDate,
-          endDate: project.endDate,
-        });
-        setIsLoadingProject(false);
-      } else {
-        showError('Project not found');
-        router.push('/admin/projects');
-      }
-    }, 500);
-  }, [projectId, showError, router]);
 
   const handleSubmit = async (data: ProjectFormData) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Updating project:', projectId, data);
+      await updateProject.mutateAsync({ id: projectId, data });
       success('Project updated successfully');
       router.push('/admin/projects');
     } catch (err) {
@@ -73,6 +43,28 @@ export default function EditProjectPage() {
     );
   }
 
+  if (isError || !project) {
+    showError('Project not found');
+    router.push('/admin/projects');
+    return null;
+  }
+
+  const initialData: ProjectFormData = {
+    title: project.title,
+    shortDescription: project.shortDescription,
+    description: project.description,
+    category: project.category,
+    techStack: project.techStack,
+    thumbnail: project.thumbnail,
+    liveUrl: project.liveUrl,
+    githubUrl: project.githubUrl,
+    status: project.status,
+    featured: project.featured,
+    isPublished: project.isPublished,
+    startDate: project.startDate,
+    endDate: project.endDate,
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -91,7 +83,7 @@ export default function EditProjectPage() {
         <div className="w-full max-w-[1000px]">
           <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl p-8 shadow-sm">
             <EnhancedProjectForm
-              initialData={currentProject || undefined}
+              initialData={initialData}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               isLoading={isLoading}

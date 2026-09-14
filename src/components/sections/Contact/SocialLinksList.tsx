@@ -9,7 +9,7 @@ import type { SocialLink } from '@/types';
 interface SocialLinksListProps {
   data: SocialLink[];
   onEdit: (link: SocialLink) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   isLoading?: boolean;
 }
 
@@ -74,14 +74,22 @@ export function SocialLinksList({ data, onEdit, onDelete, isLoading }: SocialLin
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Social Links</h2>
-          <p className="mt-1 text-sm text-gray-600">
-            Manage your social media profiles and links
-          </p>
+          <p className="mt-1 text-sm text-gray-600">Manage your social media profiles and links</p>
         </div>
         <Link href="/admin/contact/social/add">
           <Button className="cursor-pointer">
-            <svg className="w-5 h-5 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg
+              className="w-5 h-5 mr-2 inline"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add Social Link
           </Button>
@@ -102,5 +110,3 @@ export function SocialLinksList({ data, onEdit, onDelete, isLoading }: SocialLin
     </div>
   );
 }
-
-

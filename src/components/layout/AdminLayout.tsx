@@ -8,6 +8,8 @@ import { Topbar } from './Topbar';
 import { CommandPalette } from '@/components/ui/CommandPalette';
 import { KeyboardShortcutsModal } from '@/components/ui/KeyboardShortcutsModal';
 import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
+import { useAuth } from '@/lib/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -18,6 +20,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { user, loading, isAuthenticated } = useAuth();
+
+  // Route protection
+  React.useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [loading, isAuthenticated, router]);
 
   useKeyboardShortcuts([
     {
@@ -51,6 +61,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       action: () => router.push('/admin/projects'),
     },
   ]);
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[var(--bg-base)]">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
     <>
@@ -84,10 +103,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </div>
 
-      <CommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-      />
+      <CommandPalette open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       <KeyboardShortcutsModal
         isOpen={shortcutsModalOpen}
         onClose={() => setShortcutsModalOpen(false)}
@@ -95,5 +111,3 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     </>
   );
 }
-
-
