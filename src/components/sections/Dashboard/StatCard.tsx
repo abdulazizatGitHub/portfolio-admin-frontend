@@ -1,8 +1,13 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { LucideIcon } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+
+const StatCardSparkline = dynamic(() => import('./StatCardSparkline'), {
+  ssr: false,
+  loading: () => <div className="stat-card-sparkline" style={{ height: 28 }} />,
+});
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -41,24 +46,7 @@ export function StatCard({
       {/* Sparkline */}
       {sparklineData.length > 0 && (
         <div className="stat-card-sparkline">
-          <ResponsiveContainer width="100%" height={28}>
-            <AreaChart data={sparklineData.map((val, index) => ({ val, index }))}>
-              <defs>
-                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="val"
-                stroke={color}
-                strokeWidth={2}
-                fill={`url(#${gradientId})`}
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <StatCardSparkline data={sparklineData} color={color} gradientId={gradientId} />
         </div>
       )}
 

@@ -63,6 +63,7 @@ export default function EditProjectPage() {
     isPublished: project.isPublished,
     startDate: project.startDate,
     endDate: project.endDate,
+    decisions: project.decisions || [],
   };
 
   return (

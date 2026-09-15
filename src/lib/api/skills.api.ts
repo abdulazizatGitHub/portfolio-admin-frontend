@@ -16,11 +16,34 @@ interface BackendSkill {
   updated_at: string;
 }
 
+const VALID_CATEGORIES: Skill['category'][] = [
+  'frontend',
+  'backend',
+  'database',
+  'devops',
+  'tools',
+  'soft',
+  'technical',
+  'ai',
+];
+
+// Admin-authored categories don't always match the fixed enum the UI colors
+// against (e.g. "AI/ML", "Fullstack") — normalize known aliases and fall
+// back to 'technical' for anything else, rather than letting an
+// unrecognized string reach components that index color maps by category.
+const normalizeCategory = (raw: string | null | undefined): Skill['category'] => {
+  const lower = (raw || '').toLowerCase().trim();
+  if ((VALID_CATEGORIES as string[]).includes(lower)) return lower as Skill['category'];
+  if (lower.includes('ai') || lower.includes('ml')) return 'ai';
+  if (lower.includes('full')) return 'technical';
+  return 'technical';
+};
+
 const toSkill = (dto: BackendSkill): Skill => ({
   id: dto.id,
   name: dto.name,
   level: dto.level,
-  category: (dto.category?.toLowerCase() as Skill['category']) || 'technical',
+  category: normalizeCategory(dto.category),
   orderIndex: dto.order_index,
   context: dto.context ?? undefined,
   relatedTools: dto.related_tools,

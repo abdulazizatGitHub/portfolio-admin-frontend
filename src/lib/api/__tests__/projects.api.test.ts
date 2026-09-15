@@ -44,6 +44,7 @@ describe('projectsApi', () => {
       { skill: { id: 's-1', name: 'React' } },
       { skill: { id: 's-2', name: 'Node.js' } },
     ],
+    decisions: [{ question: 'Why Prisma?', answer: 'Type-safe queries and migration history.' }],
     created_at: '2024-01-01T00:00:00.000Z',
     updated_at: '2024-01-01T00:00:00.000Z',
   };
@@ -70,7 +71,18 @@ describe('projectsApi', () => {
         endDate: null,
         orderIndex: 0,
         isPublished: true,
+        decisions: [
+          { question: 'Why Prisma?', answer: 'Type-safe queries and migration history.' },
+        ],
       });
+    });
+
+    it('defaults decisions to an empty array when the backend field is absent', async () => {
+      mockedApi.get.mockResolvedValue({
+        data: { data: [{ ...backendProject, decisions: undefined }] },
+      });
+      const result = await projectsApi.getAll();
+      expect(result[0]!.decisions).toEqual([]);
     });
 
     it('maps every backend status enum value to its admin lowercase equivalent', async () => {
@@ -115,6 +127,7 @@ describe('projectsApi', () => {
         isPublished: true,
         startDate: '2024-01-01',
         endDate: null,
+        decisions: [],
       });
 
       expect(categoriesApi.resolveIdByName).toHaveBeenCalledWith('Web Application');
@@ -130,6 +143,34 @@ describe('projectsApi', () => {
           demo_url: null,
           repo_url: null,
         })
+      );
+    });
+
+    it('includes decisions in the create/update payload', async () => {
+      mockedApi.post.mockResolvedValue({ data: { data: backendProject } });
+
+      const decisions = [
+        { question: 'Why Prisma?', answer: 'Type-safe queries and migration history.' },
+      ];
+
+      await projectsApi.create({
+        title: 'New',
+        shortDescription: 'Short',
+        description: 'Long',
+        category: 'Web Application',
+        techStack: ['React'],
+        thumbnail: 'https://example.com/thumb.png',
+        status: 'live',
+        featured: false,
+        isPublished: true,
+        startDate: '2024-01-01',
+        endDate: null,
+        decisions,
+      });
+
+      expect(mockedApi.post).toHaveBeenCalledWith(
+        '/projects',
+        expect.objectContaining({ decisions })
       );
     });
 

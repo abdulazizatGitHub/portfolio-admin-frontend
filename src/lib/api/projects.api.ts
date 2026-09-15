@@ -1,7 +1,7 @@
 import api, { toAssetUrl, toRelativeAssetPath } from './api';
 import { categoriesApi } from './categories.api';
 import { skillsApi } from './skills.api';
-import type { Project, ProjectFormData, ProjectStatus } from '@/types';
+import type { DecisionEntry, Project, ProjectFormData, ProjectStatus } from '@/types';
 
 interface BackendProject {
   id: string;
@@ -20,6 +20,7 @@ interface BackendProject {
   category_id: string;
   category?: { id: string; name: string; slug: string };
   project_skills?: Array<{ skill: { id: string; name: string } }>;
+  decisions?: DecisionEntry[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -54,6 +55,7 @@ const toProject = (dto: BackendProject): Project => ({
   endDate: dto.end_date,
   orderIndex: dto.order_index,
   isPublished: dto.is_published,
+  decisions: dto.decisions ?? [],
   createdAt: dto.created_at,
   updatedAt: dto.updated_at,
 });
@@ -82,6 +84,7 @@ const toBackendPayload = async (data: Partial<ProjectFormData>) => {
     is_published: data.isPublished,
     category_id,
     skill_ids,
+    decisions: data.decisions,
   };
 };
 

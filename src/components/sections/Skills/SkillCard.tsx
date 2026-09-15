@@ -32,7 +32,7 @@ import { motion } from 'framer-motion';
  */
 export function SkillCard({ skill, onEdit, onDelete, isDragging = false }: SkillCardProps) {
   const levelLabel = getLevelLabel(skill.level);
-  const categoryColor = categoryColors[skill.category];
+  const categoryColor = categoryColors[skill.category] || categoryColors.technical;
 
   return (
     <motion.div

@@ -2,18 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Search,
-  Bell,
-  HelpCircle,
-  User,
-  LogOut,
-  Settings,
-  Home,
-  Sun,
-  Moon,
-  Menu,
-} from 'lucide-react';
+import { Search, User, LogOut, Settings, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { useTheme } from '@/lib/contexts/ThemeContext';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -126,23 +115,6 @@ export function Topbar({ onCommandPaletteOpen }: { onCommandPaletteOpen?: () => 
 
         {/* Quick Actions */}
         <div className="flex items-center gap-1">
-          {/* Notifications */}
-          <button
-            className="p-2 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)] relative"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--danger)] rounded-full border-2 border-[var(--bg-primary)]" />
-          </button>
-
-          {/* Help */}
-          <button
-            className="p-2 rounded-md hover:bg-[var(--bg-tertiary)] transition-colors text-[var(--text-secondary)]"
-            aria-label="Help"
-          >
-            <HelpCircle className="w-5 h-5" />
-          </button>
-
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -162,7 +134,7 @@ export function Topbar({ onCommandPaletteOpen }: { onCommandPaletteOpen?: () => 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button
-                className="ml-2 h-8 w-8 rounded-full bg-gradient-to-tr from-[var(--primary-500)] to-[var(--secondary-500)] flex items-center justify-center text-white font-bold text-xs cursor-pointer shadow-md hover:scale-105 transition-transform"
+                className="ml-2 h-8 w-8 rounded-full bg-[var(--primary-600)] flex items-center justify-center text-white font-bold text-xs cursor-pointer hover:bg-[var(--primary-700)] transition-colors"
                 aria-label="User menu"
               >
                 {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-4 h-4" />}

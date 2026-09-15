@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import {
   useEducation,
   useExperience,
@@ -9,6 +10,7 @@ import {
 } from '@/lib/hooks';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   FolderOpen,
   Briefcase,
@@ -20,17 +22,46 @@ import {
   Download,
 } from 'lucide-react';
 import { StatCard } from '@/components/sections/Dashboard/StatCard';
-import { TechStackChart } from '@/components/sections/Dashboard/TechStackChart';
-import { SkillsDistributionChart } from '@/components/sections/Dashboard/SkillsDistributionChart';
 import { RecentActivityList } from '@/components/sections/Dashboard/RecentActivityList';
 import { QuickActionsPanel } from '@/components/sections/Dashboard/QuickActionsPanel';
-import { TrafficTrendChart } from '@/components/sections/Dashboard/TrafficTrendChart';
 import { TopPagesCard } from '@/components/sections/Dashboard/TopPagesCard';
-import { DeviceBreakdownChart } from '@/components/sections/Dashboard/DeviceBreakdownChart';
-import { TrafficSourcesChart } from '@/components/sections/Dashboard/TrafficSourcesChart';
 import { PersonalOverviewCard } from '@/components/sections/Dashboard/PersonalOverviewCard';
 import { useRouter } from 'next/navigation';
 import type { Activity, DeviceData, TopPageData } from '@/types';
+
+// Chart components pull in `recharts`; code-split them so the dashboard
+// shell (stats, activity, quick actions) paints without waiting on it.
+const chartSkeleton = <Skeleton height={280} className="w-full" />;
+const TechStackChart = dynamic(
+  () => import('@/components/sections/Dashboard/TechStackChart').then((m) => m.TechStackChart),
+  { ssr: false, loading: () => chartSkeleton }
+);
+const SkillsDistributionChart = dynamic(
+  () =>
+    import('@/components/sections/Dashboard/SkillsDistributionChart').then(
+      (m) => m.SkillsDistributionChart
+    ),
+  { ssr: false, loading: () => chartSkeleton }
+);
+const TrafficTrendChart = dynamic(
+  () =>
+    import('@/components/sections/Dashboard/TrafficTrendChart').then((m) => m.TrafficTrendChart),
+  { ssr: false, loading: () => chartSkeleton }
+);
+const DeviceBreakdownChart = dynamic(
+  () =>
+    import('@/components/sections/Dashboard/DeviceBreakdownChart').then(
+      (m) => m.DeviceBreakdownChart
+    ),
+  { ssr: false, loading: () => chartSkeleton }
+);
+const TrafficSourcesChart = dynamic(
+  () =>
+    import('@/components/sections/Dashboard/TrafficSourcesChart').then(
+      (m) => m.TrafficSourcesChart
+    ),
+  { ssr: false, loading: () => chartSkeleton }
+);
 
 export default function DashboardPage() {
   const router = useRouter();
